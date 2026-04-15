@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('configuraciones', function (Blueprint $table) {
+            $table->id();
+            $table->string('clave')->unique();
+            $table->string('valor');
+            $table->timestamps();
+        });
+
+        DB::table('configuraciones')->insert([
+            ['clave' => 'limite_db',          'valor' => '85',  'created_at' => now(), 'updated_at' => now()],
+            ['clave' => 'intervalo_medicion',  'valor' => '5',   'created_at' => now(), 'updated_at' => now()],
+            ['clave' => 'email_alertas',       'valor' => '',    'created_at' => now(), 'updated_at' => now()],
+        ]);
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('configuraciones');
+    }
+};

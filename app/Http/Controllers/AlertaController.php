@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Alerta;
+use Illuminate\Http\Request;
+
+class AlertaController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Alerta::with('sensor')->latest();
+
+        if ($request->filled('fecha')) {
+            $query->whereDate('fecha', $request->fecha);
+        }
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        $alertas = $query->paginate(20);
+        return view('alertas.index', compact('alertas'));
+    }
+
+    public function updateEstado(Request $request, Alerta $alerta)
+    {
+        $alerta->update(['estado' => $request->estado]);
+        return back()->with('success', 'Estado actualizado.');
+    }
+}
