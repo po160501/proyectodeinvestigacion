@@ -6,6 +6,7 @@ use App\Models\Alerta;
 use App\Models\MedicionRuido;
 use App\Models\Sensor;
 use App\Models\ExposicionRuido;
+use App\Models\Obra;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -59,6 +60,33 @@ class DashboardController extends Controller
             ],
         ];
 
+        // Obras con minutos acumulados sobre el límite (hoy)
+        $obrasSobreLimite = Obra::with(['trabajadores.exposiciones' => function ($q) use ($hoy) {
+            $q->whereDate('fecha', $hoy);
+        }])->get()->map(function ($obra) {
+            $exposiciones = $obra->trabajadores->flatMap->exposiciones;
+            $minSobre = $exposiciones->where('decibeles', '>=', $obra->limite_db)->sum('tiempo_exposicion');
+            $minTotal = $exposiciones->sum('tiempo_exposicion');
+            $avgDb    = $exposiciones->avg('decibeles') ?? 0;
+            return [
+                'obra'      => $obra->nombre,
+                'limite_db' => $obra->limite_db,
+                'min_sobre' => (int) $minSobre,
+                'min_total' => (int) $minTotal,
+                'avg_db'    => round($avgDb, 1),
+                'trabajadores' => $obra->trabajadores->count(),
+            ];
+        })->filter(fn($o) => $o['min_sobre'] > 0)->sortByDesc('min_sobre')->values();
+
+        // Exposición por obra (hoy)
+        $exposicionPorObra = Obra::with(['trabajadores.exposiciones' => function($q) use ($hoy) {
+            $q->whereDate('fecha', $hoy);
+        }])->get()->map(function($obra) {
+            $totalMin = $obra->trabajadores->flatMap->exposiciones->sum('tiempo_exposicion');
+            $avgDb    = $obra->trabajadores->flatMap->exposiciones->avg('decibeles') ?? 0;
+            return ['obra' => $obra->nombre, 'minutos' => $totalMin, 'db' => round($avgDb, 1)];
+        })->filter(fn($o) => $o['minutos'] > 0)->values();
+
         return view('dashboard', compact(
             'nivelPromedio',
             'alertasHoy',
@@ -67,7 +95,9 @@ class DashboardController extends Controller
             'ruidoPorHora',
             'alertasPorDia',
             'exposicionPorTrabajador',
-            'comparacion'
+            'comparacion',
+            'exposicionPorObra',
+            'obrasSobreLimite'
         ));
     }
 }

@@ -44,6 +44,9 @@
             <a href="{{ route('alertas.index') }}" class="{{ request()->routeIs('alertas.*') ? 'active' : '' }}">
                 <span class="material-icons">notifications_active</span> Alertas
             </a>
+            <a href="{{ route('obras.index') }}" class="{{ request()->routeIs('obras.*') ? 'active' : '' }}">
+                <span class="material-icons">construction</span> Obras / Áreas
+            </a>
             <a href="{{ route('reportes.index') }}" class="{{ request()->routeIs('reportes.*') ? 'active' : '' }}">
                 <span class="material-icons">assessment</span> Reportes
             </a>

@@ -98,15 +98,63 @@
                 <canvas id="chartExposicion" height="160"></canvas>
             </div>
         </div>
-        {{-- Gráfico 4: Comparación antes vs después --}}
+        {{-- Gráfico 4: Exposición por obra --}}
         <div class="col-12 col-lg-6">
             <div class="chart-card">
-                <div class="chart-title"> Comparación Antes vs Después del Sistema IoT</div>
-                <div class="chart-sub">Impacto de la implementación — Métrica PDR</div>
-                <canvas id="chartComparacion" height="160"></canvas>
+                <div class="chart-title"> Exposición por Obra / Área</div>
+                <div class="chart-sub">Minutos totales de exposición hoy por obra</div>
+                <canvas id="chartObras" height="160"></canvas>
             </div>
         </div>
     </div>
+
+    {{-- ── Obras sobre límite ── --}}
+    @if($obrasSobreLimite->count())
+    <div class="row g-3 mt-1">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="chart-title">
+                    <span class="material-icons align-middle me-1" style="font-size:18px;color:#f85149">warning</span>
+                    Obras / Áreas con exposición sobre límite hoy
+                </div>
+                <div class="chart-sub">Minutos acumulados con decibeles ≥ límite configurado</div>
+                <div class="table-responsive mt-2">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Obra / Área</th>
+                                <th>Límite</th>
+                                <th>Promedio dB</th>
+                                <th>Min. sobre límite</th>
+                                <th>Min. totales</th>
+                                <th>Trabajadores</th>
+                                <th>Riesgo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($obrasSobreLimite as $o)
+                        @php
+                            $pct = $o['min_total'] > 0 ? round($o['min_sobre'] / $o['min_total'] * 100) : 0;
+                            $riesgo = $pct >= 50 ? 'danger' : ($pct >= 25 ? 'warning' : 'secondary');
+                            $riesgoLabel = $pct >= 50 ? 'Alto' : ($pct >= 25 ? 'Medio' : 'Bajo');
+                        @endphp
+                        <tr>
+                            <td class="fw-semibold">{{ $o['obra'] }}</td>
+                            <td>{{ $o['limite_db'] }} dB</td>
+                            <td class="{{ $o['avg_db'] >= $o['limite_db'] ? 'text-danger fw-bold' : '' }}">{{ $o['avg_db'] }} dB</td>
+                            <td class="text-danger fw-semibold">{{ $o['min_sobre'] }} min</td>
+                            <td class="text-muted">{{ $o['min_total'] }} min</td>
+                            <td>{{ $o['trabajadores'] }}</td>
+                            <td><span class="badge bg-{{ $riesgo }}">{{ $riesgoLabel }} ({{ $pct }}%)</span></td>
+                        </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
 @endsection
 
@@ -123,6 +171,8 @@
         const expNombres = @json($exposicionPorTrabajador->pluck('nombre'));
         const expMinutos = @json($exposicionPorTrabajador->pluck('minutos'));
         const comp = @json($comparacion);
+        const obraLabels = @json($exposicionPorObra->pluck('obra'));
+        const obraMinutos = @json($exposicionPorObra->pluck('minutos'));
 
         // ── Gráfico 1: Línea de ruido ──
         new Chart(document.getElementById('chartRuido'), {
@@ -250,35 +300,22 @@
             }
         });
 
-        // ── Gráfico 4: Comparación antes/después ──
-        new Chart(document.getElementById('chartComparacion'), {
+        // ── Gráfico 4: Exposición por obra ──
+        new Chart(document.getElementById('chartObras'), {
             type: 'bar',
             data: {
-                labels: ['Tiempo Exposición (min)', 'Alertas Totales', 'Precisión (%)'],
+                labels: obraLabels.length ? obraLabels : ['Sin datos'],
                 datasets: [{
-                    label: 'Antes del Sistema IoT',
-                    data: [comp.antes.exposicion, comp.antes.alertas, comp.antes.precision],
-                    backgroundColor: 'rgba(117,117,117,.75)',
-                    borderRadius: 6,
-                }, {
-                    label: 'Después del Sistema IoT',
-                    data: [comp.despues.exposicion, comp.despues.alertas, comp.despues.precision],
+                    label: 'Minutos exposición',
+                    data: obraMinutos.length ? obraMinutos : [0],
                     backgroundColor: 'rgba(21,101,192,.8)',
                     borderRadius: 6,
                 }]
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'Minutos' } } }
             }
         });
     </script>

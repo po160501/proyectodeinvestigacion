@@ -9,6 +9,8 @@ use App\Http\Controllers\MonitoreoController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\ObraController;
+use App\Http\Controllers\TrabajadorController;
 
 // ── Auth ──
 Route::get('/', fn() => redirect('/login'));
@@ -47,6 +49,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
     Route::delete('/usuarios/{user}', [UsuarioController::class, 'destroy'])->name('usuarios.destroy');
 
+    // Obras / Áreas
+    Route::get('/obras', [ObraController::class, 'index'])->name('obras.index');
+    Route::post('/obras', [ObraController::class, 'store'])->name('obras.store');
+    Route::delete('/obras/{obra}', [ObraController::class, 'destroy'])->name('obras.destroy');
+    Route::post('/obras/{obra}/token', [ObraController::class, 'generarToken'])->name('obras.token');
+
     // Configuración
     Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
     Route::put('/configuracion', [ConfiguracionController::class, 'update'])->name('configuracion.update');
@@ -54,3 +62,8 @@ Route::middleware('auth')->group(function () {
 
 // ── API para ESP32/Arduino (sin CSRF) ──
 Route::post('/api/medicion', [MonitoreoController::class, 'recibirDato'])->name('api.medicion');
+
+// ── Trabajador (acceso por token, sin auth) ──
+Route::get('/trabajador/{token}', [TrabajadorController::class, 'medidor'])->name('trabajador.medidor');
+Route::post('/trabajador/{token}/registrar', [TrabajadorController::class, 'registrar'])->name('trabajador.registrar');
+Route::post('/trabajador/{token}/medicion', [TrabajadorController::class, 'guardarMedicion'])->name('trabajador.medicion');
