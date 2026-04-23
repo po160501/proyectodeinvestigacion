@@ -41,18 +41,13 @@
             </a>
 
             <div class="nav-section">Gestión</div>
-            <a href="{{ route('alertas.index') }}" class="{{ request()->routeIs('alertas.*') ? 'active' : '' }}">
-                <span class="material-icons">notifications_active</span> Alertas
-            </a>
             <a href="{{ route('obras.index') }}" class="{{ request()->routeIs('obras.*') ? 'active' : '' }}">
                 <span class="material-icons">construction</span> Obras / Áreas
             </a>
-            <a href="{{ route('reportes.index') }}" class="{{ request()->routeIs('reportes.*') ? 'active' : '' }}">
-                <span class="material-icons">assessment</span> Reportes
+            <a href="{{ route('alertas.index') }}" class="{{ request()->routeIs('alertas.*') ? 'active' : '' }}">
+                <span class="material-icons">notifications_active</span> Alertas
             </a>
-            <a href="{{ route('sensores.index') }}" class="{{ request()->routeIs('sensores.*') ? 'active' : '' }}">
-                <span class="material-icons">device_hub</span> Sensores
-            </a>
+
 
             <div class="nav-section">Administración</div>
             <a href="{{ route('usuarios.index') }}" class="{{ request()->routeIs('usuarios.*') ? 'active' : '' }}">

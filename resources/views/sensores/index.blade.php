@@ -6,7 +6,7 @@
 
     <div class="row g-4">
         {{-- Formulario --}}
-        <div class="col-12 col-lg-4">
+        {{--<div class="col-12 col-lg-4">
             <div class="chart-card">
                 <div class="chart-title mb-3">
                     <span class="material-icons"
@@ -45,7 +45,7 @@
                     </button>
                 </form>
             </div>
-        </div>
+        </div>--}}
 
         {{-- Tabla --}}
         <div class="col-12 col-lg-8">

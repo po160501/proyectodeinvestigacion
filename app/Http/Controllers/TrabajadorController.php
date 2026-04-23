@@ -62,4 +62,10 @@ class TrabajadorController extends Controller
 
         return response()->json(['ok' => true, 'alerta' => $alerta, 'limite' => $limite]);
     }
+
+    public function destroy(Trabajador $trabajador)
+    {
+        $trabajador->delete();
+        return back()->with('success', 'Trabajador eliminado.');
+    }
 }

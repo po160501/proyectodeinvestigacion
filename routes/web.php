@@ -54,6 +54,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/obras', [ObraController::class, 'store'])->name('obras.store');
     Route::delete('/obras/{obra}', [ObraController::class, 'destroy'])->name('obras.destroy');
     Route::post('/obras/{obra}/token', [ObraController::class, 'generarToken'])->name('obras.token');
+    Route::patch('/trabajadores/{trabajador}/area', [ObraController::class, 'asignarArea'])->name('trabajadores.area');
+    Route::delete('/trabajadores/{trabajador}', [TrabajadorController::class, 'destroy'])->name('trabajadores.destroy');
 
     // Configuración
     Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');

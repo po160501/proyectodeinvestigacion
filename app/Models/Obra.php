@@ -14,8 +14,13 @@ class Obra extends Model
         return $this->hasMany(Trabajador::class, 'obra_id');
     }
 
+    public function areas()
+    {
+        return $this->hasMany(Area::class, 'obra_id');
+    }
+
     public function generarToken(): string
     {
-        return Str::random(32);
+        return \Illuminate\Support\Str::random(32);
     }
 }
