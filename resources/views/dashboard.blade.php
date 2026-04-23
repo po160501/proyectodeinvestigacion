@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Dashboard')
-@section('page-title', 'Dashboard — Resumen General - Probando WEBHOOK GITHUB')
+@section('page-title', 'Dashboard — Resumen General')
 
 @section('content')
 
