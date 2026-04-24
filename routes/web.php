@@ -25,6 +25,9 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/pdr',  [DashboardController::class, 'storePdr'])->name('dashboard.pdr');
+    Route::post('/dashboard/etag', [DashboardController::class, 'storeEtag'])->name('dashboard.etag');
+    Route::post('/dashboard/terc', [DashboardController::class, 'storeTerc'])->name('dashboard.terc');
 
     // Monitoreo
     Route::get('/monitoreo', [MonitoreoController::class, 'index'])->name('monitoreo.index');

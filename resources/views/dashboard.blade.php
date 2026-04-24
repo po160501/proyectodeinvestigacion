@@ -43,12 +43,12 @@
     </div>
     <div class="col-12 col-sm-6 col-xl-3">
         <div class="metric-card">
-            <div class="metric-icon bg-teal"><span class="material-icons">sensors</span></div>
+            <div class="metric-icon bg-teal"><span class="material-icons">smartphone</span></div>
             <div>
-                <div class="metric-value" style="color:var(--accent)">{{ $sensoresActivos }}</div>
-                <div class="metric-label">Sensores Activos</div>
+                <div class="metric-value" style="color:var(--accent)">{{ $dispositivosActivos }}</div>
+                <div class="metric-label">Dispositivos Activos</div>
                 <div class="metric-sub text-success">
-                    <span class="material-icons" style="font-size:13px;vertical-align:middle">wifi</span> En línea
+                    <span class="material-icons" style="font-size:13px;vertical-align:middle">wifi</span> Midiendo hoy
                 </div>
             </div>
         </div>
@@ -73,34 +73,42 @@
             <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
                 <div>
                     <div class="chart-title mb-0">PDR — Precisión en Detección de Ruido</div>
-                    <div class="chart-sub">Comparación sistema IoT vs equipo patrón</div>
+                    <div class="chart-sub">Sistema IoT vs equipo patrón (ingreso manual)</div>
                 </div>
                 <div class="text-center px-3 py-2 rounded" style="background:#1f6feb22;border:1px solid #1f6feb">
                     <div class="small text-muted">Precisión promedio</div>
-                    <div style="font-size:1.8rem;font-weight:700;color:#58a6ff">{{ $pdrPromedio }}%</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#58a6ff">{{ $pdrPromedio !== null ? $pdrPromedio.'%' : 'Sin datos' }}</div>
                 </div>
             </div>
+            {{-- Formulario manual PDR --}}
+            <form method="POST" action="{{ route('dashboard.pdr') }}" class="row g-2 mb-3 p-3 rounded" style="background:#161b22;border:1px solid #30363d">
+                @csrf
+                <div class="col-12"><span class="small fw-semibold" style="color:#58a6ff">+ Ingresar dato patrón</span></div>
+                <div class="col-6 col-md-2"><input type="date" name="fecha" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required></div>
+                <div class="col-6 col-md-2"><input type="time" name="hora" class="form-control form-control-sm" required placeholder="Hora"></div>
+                <div class="col-6 col-md-2"><input type="number" step="0.1" name="patron_db" class="form-control form-control-sm" placeholder="Patrón (dB)" required></div>
+                <div class="col-6 col-md-2"><input type="number" step="0.1" name="iot_db" class="form-control form-control-sm" placeholder="IoT (dB) opcional"></div>
+                <div class="col-12 col-md-2"><input type="text" name="nota" class="form-control form-control-sm" placeholder="Nota"></div>
+                <div class="col-12 col-md-2"><button class="btn btn-sm btn-primary w-100">Guardar</button></div>
+            </form>
             <div class="row g-3">
-                <div class="col-12 col-lg-8">
-                    <canvas id="chartPdrLinea" height="110"></canvas>
-                </div>
-                <div class="col-12 col-lg-4">
-                    <canvas id="chartPdrError" height="110"></canvas>
-                </div>
+                <div class="col-12 col-lg-8"><canvas id="chartPdrLinea" height="110"></canvas></div>
+                <div class="col-12 col-lg-4"><canvas id="chartPdrError" height="110"></canvas></div>
             </div>
             <div class="table-responsive mt-3">
                 <table class="table table-sm mb-0">
-                    <thead><tr><th>Hora</th><th>IoT (dB)</th><th>Patrón (dB)</th><th>Error (%)</th></tr></thead>
+                    <thead><tr><th>Hora</th><th>IoT (dB)</th><th>Patrón (dB)</th><th>Error (%)</th><th>Fuente</th></tr></thead>
                     <tbody>
-                    @forelse($pdrData->take(8) as $r)
+                    @forelse($pdrCombinado->take(10) as $r)
                     <tr>
                         <td>{{ $r['hora'] }}</td>
-                        <td>{{ $r['iot'] }}</td>
+                        <td>{{ $r['iot'] ?? '—' }}</td>
                         <td>{{ $r['patron'] }}</td>
-                        <td class="{{ $r['error'] > 5 ? 'text-danger fw-semibold' : 'text-success' }}">{{ $r['error'] }}%</td>
+                        <td class="{{ ($r['error'] ?? 0) > 5 ? 'text-danger fw-semibold' : 'text-success' }}">{{ $r['error'] !== null ? $r['error'].'%' : '—' }}</td>
+                        <td><span class="badge bg-secondary">manual</span></td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" class="text-muted text-center">Sin mediciones hoy</td></tr>
+                    <tr><td colspan="5" class="text-muted text-center">Sin datos patrón ingresados</td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -116,35 +124,42 @@
             <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
                 <div>
                     <div class="chart-title mb-0">ETAG — Tiempo de Respuesta de Alertas</div>
-                    <div class="chart-sub">Rapidez del sistema ante niveles de ruido peligrosos</div>
+                    <div class="chart-sub">Sistema automático + ingreso manual</div>
                 </div>
                 <div class="text-center px-3 py-2 rounded" style="background:#f0883e22;border:1px solid #f0883e">
-                    <div class="small text-muted">Tiempo promedio</div>
-                    <div style="font-size:1.8rem;font-weight:700;color:#f0883e">{{ $etagPromedio }}s</div>
+                    <div class="small text-muted">Tiempo promedio (manual)</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#f0883e">{{ $etagPromedio > 0 ? $etagPromedio.'s' : 'Sin datos' }}</div>
                 </div>
             </div>
+            {{-- Formulario manual ETAG --}}
+            <form method="POST" action="{{ route('dashboard.etag') }}" class="row g-2 mb-3 p-3 rounded" style="background:#161b22;border:1px solid #30363d">
+                @csrf
+                <div class="col-12"><span class="small fw-semibold" style="color:#f0883e">+ Ingresar evento manual</span></div>
+                <div class="col-6 col-md-2"><input type="date" name="fecha" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required></div>
+                <div class="col-6 col-md-2"><input type="time" step="1" name="hora_evento" class="form-control form-control-sm" placeholder="Hora evento" required></div>
+                <div class="col-6 col-md-2"><input type="time" step="1" name="hora_alerta" class="form-control form-control-sm" placeholder="Hora alerta" required></div>
+                <div class="col-12 col-md-3"><input type="text" name="nota" class="form-control form-control-sm" placeholder="Nota"></div>
+                <div class="col-12 col-md-3"><button class="btn btn-sm btn-primary w-100">Guardar</button></div>
+            </form>
             <div class="row g-3">
-                <div class="col-12 col-lg-6">
-                    <canvas id="chartEtagBarras" height="130"></canvas>
-                </div>
-                <div class="col-12 col-lg-6">
-                    <canvas id="chartEtagLinea" height="130"></canvas>
-                </div>
+                <div class="col-12 col-lg-6"><canvas id="chartEtagBarras" height="130"></canvas></div>
+                <div class="col-12 col-lg-6"><canvas id="chartEtagLinea" height="130"></canvas></div>
             </div>
             <div class="table-responsive mt-3">
                 <table class="table table-sm mb-0">
-                    <thead><tr><th>Hora evento</th><th>Hora alerta</th><th>Tiempo respuesta</th></tr></thead>
+                    <thead><tr><th>Hora evento</th><th>Hora alerta</th><th>Tiempo respuesta</th><th>Fuente</th></tr></thead>
                     <tbody>
-                    @forelse($etagData->take(8) as $e)
-                    <tr class="{{ $e['alto'] ? 'table-danger' : '' }}">
-                        <td>{{ $e['hora_evento'] }}</td>
+                    @forelse($etagData->take(10) as $e)
+                    <tr class="{{ ($e['alto'] ?? false) ? 'table-danger' : '' }}">
+                        <td>{{ $e['hora_evento'] ?? '—' }}</td>
                         <td>{{ $e['hora_alerta'] }}</td>
-                        <td class="{{ $e['alto'] ? 'text-danger fw-bold' : 'text-success' }}">
-                            {{ $e['segundos'] }}s {{ $e['alto'] ? '⚠' : '' }}
+                        <td class="{{ ($e['alto'] ?? false) ? 'text-danger fw-bold' : ($e['segundos'] ? 'text-success' : 'text-muted') }}">
+                            {{ $e['segundos'] !== null ? $e['segundos'].'s '.($e['alto'] ? '⚠' : '') : 'Auto' }}
                         </td>
+                        <td><span class="badge {{ $e['fuente']==='manual' ? 'bg-primary' : 'bg-secondary' }}">{{ $e['fuente'] }}</span></td>
                     </tr>
                     @empty
-                    <tr><td colspan="3" class="text-muted text-center">Sin alertas hoy</td></tr>
+                    <tr><td colspan="4" class="text-muted text-center">Sin alertas hoy</td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -160,35 +175,49 @@
             <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
                 <div>
                     <div class="chart-title mb-0">TERC — Tiempo de Exposición a Ruido Crítico</div>
-                    <div class="chart-sub">Exposición acumulada ≥ 85 dB por trabajadores</div>
+                    <div class="chart-sub">Sistema automático (≥85 dB) + ingreso manual</div>
                 </div>
-                <div class="text-center px-3 py-2 rounded" style="background:#f8514922;border:1px solid #f85149">
-                    <div class="small text-muted">Exposición promedio</div>
-                    <div style="font-size:1.8rem;font-weight:700;color:#f85149">{{ $tercPromedio }} min</div>
+                <div class="d-flex gap-3">
+                    <div class="text-center px-3 py-2 rounded" style="background:#f8514922;border:1px solid #f85149">
+                        <div class="small text-muted">Sistema</div>
+                        <div style="font-size:1.4rem;font-weight:700;color:#f85149">{{ $tercPromedio > 0 ? $tercPromedio.' min' : 'Sin datos' }}</div>
+                    </div>
+                    <div class="text-center px-3 py-2 rounded" style="background:#f0883e22;border:1px solid #f0883e">
+                        <div class="small text-muted">Manual</div>
+                        <div style="font-size:1.4rem;font-weight:700;color:#f0883e">{{ $tercPromedioManual > 0 ? $tercPromedioManual.' min' : 'Sin datos' }}</div>
+                    </div>
                 </div>
             </div>
+            {{-- Formulario manual TERC --}}
+            <form method="POST" action="{{ route('dashboard.terc') }}" class="row g-2 mb-3 p-3 rounded" style="background:#161b22;border:1px solid #30363d">
+                @csrf
+                <div class="col-12"><span class="small fw-semibold" style="color:#f85149">+ Ingresar exposición manual</span></div>
+                <div class="col-6 col-md-2"><input type="date" name="fecha" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required></div>
+                <div class="col-6 col-md-2"><input type="time" step="1" name="hora_inicio" class="form-control form-control-sm" placeholder="Hora inicio" required></div>
+                <div class="col-6 col-md-2"><input type="time" step="1" name="hora_fin" class="form-control form-control-sm" placeholder="Hora fin" required></div>
+                <div class="col-6 col-md-2"><input type="number" step="0.1" name="decibeles" class="form-control form-control-sm" placeholder="dB (opcional)"></div>
+                <div class="col-12 col-md-2"><input type="text" name="nota" class="form-control form-control-sm" placeholder="Nota"></div>
+                <div class="col-12 col-md-2"><button class="btn btn-sm btn-primary w-100">Guardar</button></div>
+            </form>
             <div class="row g-3">
-                <div class="col-12 col-lg-6">
-                    <canvas id="chartTercDiario" height="130"></canvas>
-                </div>
-                <div class="col-12 col-lg-6">
-                    <canvas id="chartTercHisto" height="130"></canvas>
-                </div>
+                <div class="col-12 col-lg-6"><canvas id="chartTercDiario" height="130"></canvas></div>
+                <div class="col-12 col-lg-6"><canvas id="chartTercHisto" height="130"></canvas></div>
             </div>
             <div class="table-responsive mt-3">
                 <table class="table table-sm mb-0">
-                    <thead><tr><th>Fecha</th><th>Hora inicio</th><th>Hora fin</th><th>Minutos exp.</th><th>dB</th></tr></thead>
+                    <thead><tr><th>Fecha</th><th>Hora inicio</th><th>Hora fin</th><th>Minutos exp.</th><th>dB</th><th>Fuente</th></tr></thead>
                     <tbody>
-                    @forelse($tercData->take(8) as $t)
+                    @forelse($tercData->take(10) as $t)
                     <tr>
                         <td>{{ $t['fecha'] }}</td>
                         <td>{{ $t['hora_inicio'] }}</td>
                         <td>{{ $t['hora_fin'] }}</td>
                         <td class="fw-semibold text-danger">{{ $t['minutos'] }} min</td>
-                        <td>{{ $t['db'] }} dB</td>
+                        <td>{{ $t['db'] > 0 ? $t['db'].' dB' : '—' }}</td>
+                        <td><span class="badge {{ $t['fuente']==='manual' ? 'bg-primary' : 'bg-secondary' }}">{{ $t['fuente'] }}</span></td>
                     </tr>
                     @empty
-                    <tr><td colspan="5" class="text-muted text-center">Sin exposiciones críticas hoy</td></tr>
+                    <tr><td colspan="6" class="text-muted text-center">Sin exposiciones críticas hoy</td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -307,13 +336,13 @@ const LIMIT_DB = 85;
 const ruidoHoras  = @json($ruidoPorHora->pluck('hora'));
 const ruidoValues = @json($ruidoPorHora->pluck('db'));
 
-const pdrHoras    = @json($pdrData->pluck('hora'));
-const pdrIot      = @json($pdrData->pluck('iot'));
-const pdrPatron   = @json($pdrData->pluck('patron'));
-const pdrError    = @json($pdrData->pluck('error'));
+const pdrHoras    = @json($pdrCombinado->pluck('hora'));
+const pdrIot      = @json($pdrCombinado->pluck('iot'));
+const pdrPatron   = @json($pdrCombinado->pluck('patron'));
+const pdrError    = @json($pdrCombinado->pluck('error'));
 
-const etagSeg     = @json($etagData->pluck('segundos'));
-const etagLabels  = @json($etagData->keys());
+const etagSeg     = @json($etagData->where('fuente','manual')->pluck('segundos'));
+const etagSegSis  = @json($etagData->where('fuente','sistema')->values()->keys());
 
 const tercDias    = @json($tercDiario->pluck('dia'));
 const tercTotales = @json($tercDiario->pluck('total'));
@@ -384,8 +413,9 @@ new Chart(document.getElementById('chartPdrError'), {
         scales: { y: { beginAtZero: true, title:{ display:true, text:'Error (%)' } } } }
 });
 
-// ── Gráfico ETAG barras ──
-const etagD = etagSeg.length ? etagSeg : [8,12,5,22,9,31,7,18];
+// ── Gráfico ETAG barras (manual=azul, sistema=gris) ──
+const etagD = etagSeg.filter(v => v !== null);
+const etagDSis = @json($etagData->where('fuente','sistema')->count());
 new Chart(document.getElementById('chartEtagBarras'), {
     type: 'bar',
     data: {
