@@ -21,34 +21,39 @@ class MonitoreoController extends Controller
     // Endpoint AJAX — retorna obras, trabajadores y ponderado
     public function datos(Request $request)
     {
-        $hoy          = Carbon::today();
-        $obraId       = $request->query('obra_id');
+        $hoy = Carbon::today();
+        $obraId = $request->query('obra_id');
         $trabajadorId = $request->query('trabajador_id');
 
         // ── Obras con ponderado ──
         $obras = Obra::with([
             'areas',
             'areas.trabajadores' => fn($q) => $q->where('nombre', '!=', 'Pendiente'),
-            'areas.trabajadores.exposiciones' => fn($q) => $q->whereDate('fecha', $hoy)->latest(),
+            'areas.trabajadores.exposiciones' => fn($q) => $q->where('updated_at', '>=', Carbon::now()->subMinute())->latest(),
         ])->get()->map(function ($obra) {
-            $allTrab = $obra->areas->flatMap->trabajadores;
-            $dbs = $allTrab->map(fn($t) => $t->exposiciones->first()?->decibeles ?? null)->filter()->values();
+            $areasData = $obra->areas->map(function ($a) {
+                $dbs = $a->trabajadores->map(fn($t) => $t->exposiciones->first()?->decibeles ?? null)
+                    ->filter(fn($val) => $val !== null && $val > 0)
+                    ->values();
+                
+                return [
+                    'id' => $a->id,
+                    'nombre' => $a->nombre,
+                    'ponderado' => $dbs->count() ? round($dbs->avg(), 1) : null,
+                    'total' => $a->trabajadores->count(),
+                ];
+            })->values();
+
+            // Solo promediamos las áreas que tienen trabajadores activos (ponderado no nulo)
+            $activeAreasDbs = $areasData->pluck('ponderado')->filter();
 
             return [
-                'id'        => $obra->id,
-                'nombre'    => $obra->nombre,
+                'id' => $obra->id,
+                'nombre' => $obra->nombre,
                 'limite_db' => $obra->limite_db,
-                'ponderado' => $dbs->count() ? round($dbs->avg(), 1) : null,
-                'total'     => $allTrab->count(),
-                'areas'     => $obra->areas->map(function ($a) use ($obra) {
-                    $dbs = $a->trabajadores->map(fn($t) => $t->exposiciones->first()?->decibeles ?? null)->filter()->values();
-                    return [
-                        'id'        => $a->id,
-                        'nombre'    => $a->nombre,
-                        'ponderado' => $dbs->count() ? round($dbs->avg(), 1) : null,
-                        'total'     => $a->trabajadores->count(),
-                    ];
-                })->values(),
+                'ponderado' => $activeAreasDbs->count() ? round($activeAreasDbs->avg(), 1) : null,
+                'total' => $obra->areas->flatMap->trabajadores->count(),
+                'areas' => $areasData,
             ];
         });
 
@@ -57,20 +62,20 @@ class MonitoreoController extends Controller
         if ($obraId) {
             $trabajadores = \App\Models\Trabajador::where('obra_id', $obraId)
                 ->where('nombre', '!=', 'Pendiente')
-                ->with(['exposiciones' => fn($q) => $q->whereDate('fecha', $hoy)->orderByDesc('created_at')])
+                ->with(['exposiciones' => fn($q) => $q->where('updated_at', '>=', Carbon::now()->subMinute())->orderByDesc('created_at')])
                 ->get()
                 ->map(fn($t) => [
-                    'id'      => $t->id,
-                    'nombre'  => $t->nombre,
+                    'id' => $t->id,
+                    'nombre' => $t->nombre,
                     'area_id' => $t->area_id,
-                    'db'      => $t->exposiciones->first()?->decibeles ?? null,
-                    'hora'    => $t->exposiciones->first()?->hora_fin ?? null,
+                    'db' => $t->exposiciones->first()?->decibeles ?? null,
+                    'hora' => $t->exposiciones->first()?->hora_fin ?? null,
                 ])->values();
         }
 
         // ── Historial: trabajador individual ──
         $historial = [];
-        $titulo    = null;
+        $titulo = null;
         if ($trabajadorId) {
             $t = \App\Models\Trabajador::find($trabajadorId);
             $titulo = $t?->nombre;
@@ -78,13 +83,13 @@ class MonitoreoController extends Controller
                 ->whereDate('fecha', $hoy)
                 ->orderBy('hora_fin')
                 ->get()
-                ->map(fn($e) => ['hora' => substr($e->hora_fin, 0, 5), 'db' => (float)$e->decibeles])
+                ->map(fn($e) => ['hora' => substr($e->hora_fin, 0, 5), 'db' => (float) $e->decibeles])
                 ->values();
         } elseif ($obraId) {
             // Historial ponderado de la obra
-            $obra   = Obra::find($obraId);
+            $obra = Obra::find($obraId);
             $titulo = $obra?->nombre;
-            $ids    = \App\Models\Trabajador::where('obra_id', $obraId)->pluck('id');
+            $ids = \App\Models\Trabajador::where('obra_id', $obraId)->pluck('id');
             $historial = ExposicionRuido::whereIn('trabajador_id', $ids)
                 ->whereDate('fecha', $hoy)
                 ->select(DB::raw('LEFT(hora_fin,5) as hora'), DB::raw('AVG(decibeles) as db'))
@@ -97,7 +102,8 @@ class MonitoreoController extends Controller
 
         // Límite según contexto
         $limite = 85;
-        if ($obraId) $limite = Obra::find($obraId)?->limite_db ?? 85;
+        if ($obraId)
+            $limite = Obra::find($obraId)?->limite_db ?? 85;
 
         return response()->json(compact('obras', 'trabajadores', 'historial', 'titulo', 'limite'));
     }

@@ -15,12 +15,15 @@ class AlertaController extends Controller
             ->where('nivel_ruido', '>=', 85)
             ->latest();
 
-        if ($request->filled('fecha'))  $query->whereDate('fecha', $request->fecha);
-        if ($request->filled('estado')) $query->where('estado', $request->estado);
-        if ($request->filled('obra_id')) $query->where('obra_id', $request->obra_id);
+        if ($request->filled('fecha'))
+            $query->whereDate('fecha', $request->fecha);
+        if ($request->filled('estado'))
+            $query->where('estado', $request->estado);
+        if ($request->filled('obra_id'))
+            $query->where('obra_id', $request->obra_id);
 
         $alertas = $query->paginate(20);
-        $obras   = Obra::orderBy('nombre')->get();
+        $obras = Obra::orderBy('nombre')->get();
 
         return view('alertas.index', compact('alertas', 'obras'));
     }

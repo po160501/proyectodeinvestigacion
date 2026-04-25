@@ -21,10 +21,10 @@ class TrabajadorController extends Controller
     public function registrar(Request $request, string $token)
     {
         $request->validate([
-            'nombre'    => 'required|string|max:100',
-            'telefono'  => 'nullable|string|max:20',
+            'nombre' => 'required|string|max:100',
+            'telefono' => 'nullable|string|max:20',
             'jornada_inicio' => 'nullable|date_format:H:i',
-            'jornada_fin'    => 'nullable|date_format:H:i',
+            'jornada_fin' => 'nullable|date_format:H:i',
         ]);
 
         $trabajador = Trabajador::where('token_sesion', $token)->firstOrFail();
@@ -37,26 +37,26 @@ class TrabajadorController extends Controller
     public function guardarMedicion(Request $request, string $token)
     {
         $request->validate([
-            'decibeles'   => 'required|numeric|min:0|max:200',
+            'decibeles' => 'required|numeric|min:0|max:200',
             'hora_inicio' => 'required|date_format:H:i:s',
-            'hora_fin'    => 'required|date_format:H:i:s',
+            'hora_fin' => 'required|date_format:H:i:s',
         ]);
 
         $trabajador = Trabajador::where('token_sesion', $token)->with('obra')->firstOrFail();
-        $limite     = $trabajador->obra?->limite_db ?? 85;
-        $alerta     = $request->decibeles >= $limite;
+        $limite = $trabajador->obra?->limite_db ?? 85;
+        $alerta = $request->decibeles >= $limite;
 
-        $inicio  = Carbon::createFromFormat('H:i:s', $request->hora_inicio);
-        $fin     = Carbon::createFromFormat('H:i:s', $request->hora_fin);
+        $inicio = Carbon::createFromFormat('H:i:s', $request->hora_inicio);
+        $fin = Carbon::createFromFormat('H:i:s', $request->hora_fin);
         $minutos = max(1, (int) $inicio->diffInMinutes($fin));
 
         ExposicionRuido::create([
-            'trabajador_id'     => $trabajador->id,
-            'hora_inicio'       => $request->hora_inicio,
-            'hora_fin'          => $request->hora_fin,
+            'trabajador_id' => $trabajador->id,
+            'hora_inicio' => $request->hora_inicio,
+            'hora_fin' => $request->hora_fin,
             'tiempo_exposicion' => $minutos,
-            'decibeles'         => $request->decibeles,
-            'fecha'             => now()->toDateString(),
+            'decibeles' => $request->decibeles,
+            'fecha' => now()->toDateString(),
         ]);
 
         // Crear alerta inmediata si supera límite
@@ -68,19 +68,19 @@ class TrabajadorController extends Controller
 
             if (!$reciente) {
                 Alerta::create([
-                    'sensor_id'     => null,
+                    'sensor_id' => null,
                     'trabajador_id' => $trabajador->id,
-                    'obra_id'       => $trabajador->obra_id,
-                    'nivel_ruido'   => $request->decibeles,
-                    'fecha'         => now()->toDateString(),
-                    'hora'          => now()->toTimeString(),
-                    'estado'        => 'activa',
+                    'obra_id' => $trabajador->obra_id,
+                    'nivel_ruido' => $request->decibeles,
+                    'fecha' => now()->toDateString(),
+                    'hora' => now()->toTimeString(),
+                    'estado' => 'activa',
                 ]);
             }
         }
 
         return response()->json([
-            'ok'     => true,
+            'ok' => true,
             'alerta' => $alerta,
             'limite' => $limite,
         ]);

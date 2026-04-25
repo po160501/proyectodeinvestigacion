@@ -14,18 +14,19 @@ use App\Http\Controllers\TrabajadorController;
 
 // ── Auth ──
 Route::get('/', fn() => redirect('/login'));
-Route::get('/about',     fn() => view('about'))->name('about');
-Route::get('/login',     [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
-Route::post('/login',    [AuthController::class, 'login']);
-Route::post('/logout',   [AuthController::class, 'logout'])->name('logout');
-Route::get('/register',  [AuthController::class, 'showRegister'])->name('register')->middleware('guest');
+Route::get('/about', fn() => view('about'))->name('about');
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register')->middleware('guest');
 Route::post('/register', [AuthController::class, 'register']);
 
 // ── Rutas protegidas ──
 Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/dashboard/pdr',  [DashboardController::class, 'storePdr'])->name('dashboard.pdr');
+    Route::get('/dashboard/api', [DashboardController::class, 'api'])->name('dashboard.api');
+    Route::post('/dashboard/pdr', [DashboardController::class, 'storePdr'])->name('dashboard.pdr');
     Route::post('/dashboard/etag', [DashboardController::class, 'storeEtag'])->name('dashboard.etag');
     Route::post('/dashboard/terc', [DashboardController::class, 'storeTerc'])->name('dashboard.terc');
 

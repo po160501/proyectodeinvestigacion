@@ -19,10 +19,10 @@ class ObraController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre'   => 'required|string|max:100',
-            'limite_db'=> 'integer|min:50|max:140',
-            'areas'    => 'required|array|min:1',
-            'areas.*'  => 'required|string|max:100',
+            'nombre' => 'required|string|max:100',
+            'limite_db' => 'integer|min:50|max:140',
+            'areas' => 'required|array|min:1',
+            'areas.*' => 'required|string|max:100',
         ]);
 
         $obra = Obra::create($request->only('nombre', 'descripcion', 'limite_db'));
@@ -53,10 +53,10 @@ class ObraController extends Controller
     {
         $token = Str::random(32);
         Trabajador::create([
-            'nombre'       => 'Pendiente',
-            'empresa'      => '',
-            'area'         => $obra->nombre,
-            'obra_id'      => $obra->id,
+            'nombre' => 'Pendiente',
+            'empresa' => '',
+            'area' => $obra->nombre,
+            'obra_id' => $obra->id,
             'token_sesion' => $token,
         ]);
         return response()->json(['url' => route('trabajador.medidor', $token), 'token' => $token]);

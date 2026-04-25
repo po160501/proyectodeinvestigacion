@@ -8,7 +8,8 @@
         <div class="col-12 col-lg-7">
             <div class="chart-card">
                 <div class="chart-title mb-1">
-                    <span class="material-icons" style="font-size:18px;vertical-align:middle;color:var(--primary)">tune</span>
+                    <span class="material-icons"
+                        style="font-size:18px;vertical-align:middle;color:var(--primary)">tune</span>
                     Parámetros del Sistema IoT
                 </div>
                 <p class="text-muted mb-4" style="font-size:.82rem">
@@ -28,8 +29,7 @@
                         <div class="input-group">
                             <input type="number" name="limite_db"
                                 class="form-control @error('limite_db') is-invalid @enderror"
-                                value="{{ old('limite_db', $config['limite_db']) }}" min="50" max="140"
-                                step="1">
+                                value="{{ old('limite_db', $config['limite_db']) }}" min="50" max="140" step="1">
                             <span class="input-group-text">dB</span>
                         </div>
                         <div class="form-text">Valor recomendado: 85 dB (OMS / normativa peruana). Se generará alerta
@@ -48,8 +48,7 @@
                         <div class="input-group">
                             <input type="number" name="intervalo_medicion"
                                 class="form-control @error('intervalo_medicion') is-invalid @enderror"
-                                value="{{ old('intervalo_medicion', $config['intervalo_medicion']) }}" min="1"
-                                max="60">
+                                value="{{ old('intervalo_medicion', $config['intervalo_medicion']) }}" min="1" max="60">
                             <span class="input-group-text">seg</span>
                         </div>
                         <div class="form-text">Frecuencia con la que el sensor ESP32 envía datos al sistema.</div>
@@ -82,9 +81,9 @@
                             Endpoint para ESP32 / Arduino
                         </div>
                         <code style="font-size:.8rem;color:#1565C0">
-                            POST {{ url('/api/medicion') }}<br>
-                            Body: { "sensor_id": 1, "decibeles": 87.5 }
-                        </code>
+                                POST {{ url('/api/medicion') }}<br>
+                                Body: { "sensor_id": 1, "decibeles": 87.5 }
+                            </code>
                     </div>
 
                     <button type="submit" class="btn btn-primary px-4">
