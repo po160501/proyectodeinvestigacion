@@ -1,0 +1,18 @@
+{
+  "name": "SoundGuard Noise Monitor",
+  "short_name": "SoundGuard",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#1f6feb",
+  "description": "Sistema de Monitoreo de Ruido en Tiempo Real",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
