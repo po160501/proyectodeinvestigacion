@@ -13,7 +13,15 @@ use App\Http\Controllers\ObraController;
 use App\Http\Controllers\TrabajadorController;
 
 // ── Auth ──
-Route::get('/', fn() => redirect('/login'));
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    if ($token = request()->cookie('worker_token')) {
+        return redirect()->route('trabajador.medidor', $token);
+    }
+    return redirect('/login');
+});
 Route::get('/about', fn() => view('about'))->name('about');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login']);

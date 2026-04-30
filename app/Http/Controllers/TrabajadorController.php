@@ -14,6 +14,8 @@ class TrabajadorController extends Controller
     public function medidor(string $token)
     {
         $trabajador = Trabajador::where('token_sesion', $token)->with('obra')->firstOrFail();
+        // Guardamos el token en una cookie por 1 año para persistencia en PWA
+        cookie()->queue('worker_token', $token, 60 * 24 * 365);
         return view('trabajador.medidor', compact('trabajador', 'token'));
     }
 
