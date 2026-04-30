@@ -77,58 +77,22 @@
                 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
                     <div>
                         <div class="chart-title mb-0">PDR — Precisión en Detección de Ruido</div>
-                        <div class="chart-sub">Sistema IoT vs equipo patrón (ingreso manual)</div>
+                        <div class="chart-sub">Comparativa Sistema IoT vs equipo patrón</div>
                     </div>
-                    <div class="text-center px-3 py-2 rounded" style="background:#1f6feb22;border:1px solid #1f6feb">
-                        <div class="small text-muted">Precisión promedio</div>
-                        <div id="valPdrPromedio" style="font-size:1.8rem;font-weight:700;color:#58a6ff">
-                            {{ $pdrPromedio !== null ? $pdrPromedio . '%' : 'Sin datos' }}</div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-center px-3 py-2 rounded" style="background:#1f6feb22;border:1px solid #1f6feb">
+                            <div class="small text-muted">Precisión promedio</div>
+                            <div id="valPdrPromedio" style="font-size:1.8rem;font-weight:700;color:#58a6ff">
+                                {{ $pdrPromedio !== null ? $pdrPromedio . '%' : 'Sin datos' }}</div>
+                        </div>
+                        <a href="{{ route('pdr.index') }}" class="btn btn-primary d-flex align-items-center gap-2">
+                            <span class="material-icons">analytics</span> Detalles
+                        </a>
                     </div>
-                </div>
-                <div class="d-flex gap-2 mb-3">
-                    <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                        data-bs-toggle="modal" data-bs-target="#modalPdr">
-                        <span class="material-icons" style="font-size:16px">add_circle</span> Ver Tabla / Ingresar Datos
-                    </button>
                 </div>
                 <div class="row g-3">
-                    <div class="col-12 col-lg-8"><canvas id="chartPdrLinea" height="110"></canvas></div>
-                    <div class="col-12 col-lg-4"><canvas id="chartPdrError" height="110"></canvas></div>
-                </div>
-                <div class="mt-4">
-                    <div class="small fw-semibold mb-2" style="color:#58a6ff">Comparativa de Eventos Críticos (> 85dB)</div>
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Hora</th>
-                                    <th>Área</th>
-                                    <th>iotDB (Sistema)</th>
-                                    <th>PATRON (Equipo)</th>
-                                    <th>Error (%)</th>
-                                    <th>Fuente</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablePdrBody">
-                                @forelse($pdrCombinado->take(10) as $r)
-                                    <tr>
-                                        <td>{{ $r['hora'] }}</td>
-                                        <td><span class="badge bg-info text-dark">{{ $r['area'] }}</span></td>
-                                        <td>{{ $r['iot'] ?? '—' }} dB</td>
-                                        <td class="{{ $r['patron'] ? '' : 'text-muted fst-italic' }}">
-                                            {{ $r['patron'] ? $r['patron'] . ' dB' : 'Pendiente' }}</td>
-                                        <td class="{{ ($r['error'] ?? 0) > 5 ? 'text-danger fw-semibold' : 'text-success' }}">
-                                            {{ $r['error'] !== null ? $r['error'] . '%' : '—' }}</td>
-                                        <td><span class="badge bg-secondary">{{ $r['fuente'] }}</span></td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-muted text-center">Sin eventos críticos detectados hoy</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                    <div class="col-12 col-lg-8"><canvas id="chartPdrLinea" height="150"></canvas></div>
+                    <div class="col-12 col-lg-4"><canvas id="chartPdrError" height="150"></canvas></div>
                 </div>
             </div>
         </div>
@@ -141,85 +105,22 @@
                 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
                     <div>
                         <div class="chart-title mb-0">ETAG — Tiempo de Respuesta de Alertas</div>
-                        <div class="chart-sub">Sistema automático + ingreso manual</div>
+                        <div class="chart-sub">Velocidad de notificación del sistema</div>
                     </div>
-                    <div class="text-center px-3 py-2 rounded" style="background:#f0883e22;border:1px solid #f0883e">
-                        <div class="small text-muted">Tiempo promedio (manual)</div>
-                        <div id="valEtagPromedio" style="font-size:1.8rem;font-weight:700;color:#f0883e">
-                            {{ $etagPromedio > 0 ? $etagPromedio . 's' : 'Sin datos' }}</div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-center px-3 py-2 rounded" style="background:#f0883e22;border:1px solid #f0883e">
+                            <div class="small text-muted">Respuesta prom.</div>
+                            <div id="valEtagPromedio" style="font-size:1.8rem;font-weight:700;color:#f0883e">
+                                {{ $etagPromedio > 0 ? $etagPromedio . 's' : 'Sin datos' }}</div>
+                        </div>
+                        <a href="{{ route('etag.index') }}" class="btn btn-warning text-white d-flex align-items-center gap-2">
+                            <span class="material-icons">history_toggle_off</span> Detalles
+                        </a>
                     </div>
-                </div>
-                <div class="d-flex gap-2 mb-3">
-                    <button type="button" class="btn btn-sm btn-outline-warning d-flex align-items-center gap-1"
-                        style="color:#f0883e;border-color:#f0883e" data-bs-toggle="modal" data-bs-target="#modalEtag">
-                        <span class="material-icons" style="font-size:16px">add_circle</span> Ingresar Evento Manual
-                    </button>
                 </div>
                 <div class="row g-3">
-                    <div class="col-12 col-lg-6"><canvas id="chartEtagBarras" height="130"></canvas></div>
-                    <div class="col-12 col-lg-6"><canvas id="chartEtagLinea" height="130"></canvas></div>
-                </div>
-                <div class="row g-3 mt-3">
-                    <div class="col-12 col-xl-6">
-                        <div class="small fw-semibold mb-2" style="color:#58a6ff">Alertas Automáticas (Sistema)</div>
-                        <div class="table-responsive">
-                            <table class="table table-sm mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Hora evento</th>
-                                        <th>Hora alerta</th>
-                                        <th>Respuesta</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableEtagSistemaBody">
-                                    @forelse($etagData->where('fuente', 'sistema')->take(5) as $e)
-                                        <tr class="{{ $e['alto'] ? 'table-danger' : '' }}">
-                                            <td>{{ $e['hora_evento'] }}</td>
-                                            <td>{{ $e['hora_alerta'] }}</td>
-                                            <td class="{{ $e['alto'] ? 'text-danger fw-bold' : 'text-success' }}">
-                                                {{ $e['segundos'] }}s
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="3" class="text-muted text-center">Sin alertas de sistema</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="col-12 col-xl-6">
-                        <div class="small fw-semibold mb-2" style="color:#f0883e">Alertas Manuales</div>
-                        <div class="table-responsive">
-                            <table class="table table-sm mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Hora evento</th>
-                                        <th>Hora alerta</th>
-                                        <th>Respuesta</th>
-                                        <th>Fuente</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableEtagManualBody">
-                                    @forelse($etagData->where('fuente', 'manual')->take(5) as $e)
-                                        <tr>
-                                            <td>{{ $e['hora_evento'] }}</td>
-                                            <td>{{ $e['hora_alerta'] }}</td>
-                                            <td>
-                                                {{ $e['segundos'] }}s
-                                            </td>
-                                            <td><span class="badge bg-secondary">{{ $e['fuente'] }}</span></td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="text-muted text-center">Sin alertas manuales</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <div class="col-12 col-lg-6"><canvas id="chartEtagBarras" height="150"></canvas></div>
+                    <div class="col-12 col-lg-6"><canvas id="chartEtagLinea" height="150"></canvas></div>
                 </div>
             </div>
         </div>
@@ -232,90 +133,25 @@
                 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
                     <div>
                         <div class="chart-title mb-0">TERC — Tiempo de Exposición a Ruido Crítico</div>
-                        <div class="chart-sub">Sistema automático (≥85 dB) + ingreso manual</div>
+                        <div class="chart-sub">Minutos acumulados por encima de 85 dB</div>
                     </div>
-                    <div class="d-flex gap-3">
-                        <div class="text-center px-3 py-2 rounded" style="background:#f8514922;border:1px solid #f85149">
-                            <div class="small text-muted">Sistema</div>
-                            <div style="font-size:1.4rem;font-weight:700;color:#f85149">
-                                {{ $tercPromedio > 0 ? $tercPromedio . ' min' : 'Sin datos' }}</div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex gap-2">
+                            <div class="text-center px-2 py-1 rounded border border-danger small text-danger" style="background:#f8514915">
+                                Sistema: {{ $tercPromedio }}m
+                            </div>
+                            <div class="text-center px-2 py-1 rounded border border-warning small text-warning" style="background:#f0883e15">
+                                Manual: {{ $tercPromedioManual }}m
+                            </div>
                         </div>
-                        <div class="text-center px-3 py-2 rounded" style="background:#f0883e22;border:1px solid #f0883e">
-                            <div class="small text-muted">Manual</div>
-                            <div style="font-size:1.4rem;font-weight:700;color:#f0883e">
-                                {{ $tercPromedioManual > 0 ? $tercPromedioManual . ' min' : 'Sin datos' }}</div>
-                        </div>
+                        <a href="{{ route('terc.index') }}" class="btn btn-danger d-flex align-items-center gap-2">
+                            <span class="material-icons">timer</span> Detalles
+                        </a>
                     </div>
-                </div>
-                <div class="d-flex gap-2 mb-3">
-                    <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
-                        data-bs-toggle="modal" data-bs-target="#modalTerc">
-                        <span class="material-icons" style="font-size:16px">add_circle</span> Ingresar Información Manual
-                    </button>
                 </div>
                 <div class="row g-3">
-                    <div class="col-12 col-lg-6"><canvas id="chartTercDiario" height="130"></canvas></div>
-                    <div class="col-12 col-lg-6"><canvas id="chartTercHisto" height="130"></canvas></div>
-                </div>
-                <div class="row g-3 mt-3">
-                    <div class="col-12 col-xl-6">
-                        <div class="small fw-semibold mb-2" style="color:#f85149">Exposiciones del Sistema (≥85 dB)</div>
-                        <div class="table-responsive">
-                            <table class="table table-sm mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Inicio</th>
-                                        <th>Fin</th>
-                                        <th>Minutos</th>
-                                        <th>Prom. dB</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($tercSistema->take(5) as $t)
-                                        <tr>
-                                            <td>{{ $t['hora_inicio'] }}</td>
-                                            <td>{{ $t['hora_fin'] }}</td>
-                                            <td class="text-danger fw-bold">{{ $t['minutos'] }}m</td>
-                                            <td>{{ $t['db'] }} dB</td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="text-muted text-center">Sin exposiciones hoy</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="col-12 col-xl-6">
-                        <div class="small fw-semibold mb-2" style="color:#f0883e">Exposiciones Manuales</div>
-                        <div class="table-responsive">
-                            <table class="table table-sm mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Inicio</th>
-                                        <th>Fin</th>
-                                        <th>Minutos</th>
-                                        <th>Fuente</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($tercManual->take(5) as $t)
-                                        <tr>
-                                            <td>{{ $t['hora_inicio'] }}</td>
-                                            <td>{{ $t['hora_fin'] }}</td>
-                                            <td>{{ $t['minutos'] }}m</td>
-                                            <td><span class="badge bg-secondary">{{ $t['fuente'] }}</span></td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="text-muted text-center">Sin registros manuales</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <div class="col-12 col-lg-6"><canvas id="chartTercDiario" height="150"></canvas></div>
+                    <div class="col-12 col-lg-6"><canvas id="chartTercHisto" height="150"></canvas></div>
                 </div>
             </div>
         </div>
@@ -889,12 +725,18 @@
                 charts.pdrE.data.datasets[0].data = d.pdrCombinado.map(p => p.error);
                 charts.pdrE.update('none');
 
-                charts.etagB.data.labels = d.etagData.map((_, i) => 'E' + (i + 1));
-                charts.etagB.data.datasets[0].data = d.etagData.map(e => e.segundos);
+                // ETAG — separar sistema y manual para colores correctos
+                const etagAll  = d.etagData;
+                const etagLabelsNew = etagAll.map(e => e.hora_evento ? e.hora_evento.substring(0,5) : '—');
+                const etagColores = etagAll.map(e => e.fuente === 'sistema' ? 'rgba(31,111,235,.85)' : 'rgba(240,136,62,.85)');
+
+                charts.etagB.data.labels = etagLabelsNew.length ? etagLabelsNew : ['Sin datos'];
+                charts.etagB.data.datasets[0].data = etagAll.length ? etagAll.map(e => e.segundos) : [0];
+                charts.etagB.data.datasets[0].backgroundColor = etagColores;
                 charts.etagB.update('none');
 
-                charts.etagL.data.labels = d.etagData.map((_, i) => 'E' + (i + 1));
-                charts.etagL.data.datasets[0].data = d.etagData.map(e => e.segundos);
+                charts.etagL.data.labels = etagLabelsNew.length ? etagLabelsNew : ['Sin datos'];
+                charts.etagL.data.datasets[0].data = etagAll.length ? etagAll.map(e => e.segundos) : [0];
                 charts.etagL.update('none');
 
                 charts.tercD.data.labels = d.tercDiario.map(t => t.dia);
@@ -909,32 +751,13 @@
                 // Tables
                 const buildTable = (id, rows, callback) => {
                     const body = document.getElementById(id);
+                    if (!body) return;
                     if (!rows.length) {
                         body.innerHTML = `<tr><td colspan="10" class="text-muted text-center italic">Sin datos registrados</td></tr>`;
                         return;
                     }
                     body.innerHTML = rows.map(callback).join('');
                 };
-
-                buildTable('tablePdrBody', d.pdrCombinado.slice(0, 10), r => `
-                <tr>
-                    <td>${r.hora}</td>
-                    <td>${r.iot || '—'} dB</td>
-                    <td class="${r.patron ? '' : 'text-muted fst-italic'}">${r.patron ? r.patron + ' dB' : 'Pendiente'}</td>
-                    <td class="${(r.error || 0) > 5 ? 'text-danger fw-semibold' : 'text-success'}">${r.error !== null ? r.error + '%' : '—'}</td>
-                    <td><span class="badge bg-secondary">${r.fuente}</span></td>
-                </tr>
-            `);
-
-                buildTable('tableEtagSistemaBody', d.etagData.filter(e => e.fuente === 'sistema').slice(0, 5), e => `
-                <tr class="${e.alto ? 'table-danger' : ''}">
-                    <td>${e.hora_evento}</td><td>${e.hora_alerta}</td><td class="${e.alto ? 'text-danger fw-bold' : 'text-success'}">${e.segundos}s</td>
-                </tr>
-            `);
-
-                buildTable('tableEtagManualBody', d.etagData.filter(e => e.fuente === 'manual').slice(0, 5), e => `
-                <tr><td>${e.hora_evento}</td><td>${e.hora_alerta}</td><td>${e.segundos}s</td><td><span class="badge bg-secondary">${e.fuente}</span></td></tr>
-            `);
 
                 buildTable('tableObrasBody', d.obrasSobreLimite, o => {
                     const pct = o.min_total > 0 ? Math.round(o.min_sobre / o.min_total * 100) : 0;
@@ -954,5 +777,6 @@
         }
 
         setInterval(refreshDashboard, 10000); // 10s
+
     </script>
 @endpush

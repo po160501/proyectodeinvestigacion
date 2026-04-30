@@ -19,7 +19,7 @@
     @stack('styles')
 </head>
 
-<body>
+<body class="font-sans antialiased">
 
     <!-- Sidebar -->
     <nav id="sidebar">

@@ -20,15 +20,72 @@ class DashboardController extends Controller
         $data = $this->getDashboardData();
         return view('dashboard', $data);
     }
-
+    public function pdr()
+    {
+        $data = $this->getDashboardData();
+        return view('pdr.index', $data);
+    }
+    public function etag()
+    {
+        $data = $this->getDashboardData();
+        return view('etag.index', $data);
+    }
+    public function terc()
+    {
+        $data = $this->getDashboardData();
+        return view('terc.index', $data);
+    }
     public function api()
     {
         return response()->json($this->getDashboardData());
     }
 
+    /**AJAX TERC*/
+    public function apiTerc()
+    {
+        $hoy = Carbon::today('America/Lima');
+
+        $registros85 = ExposicionRuido::whereDate('fecha', $hoy)
+            ->where('decibeles', '>=', 85)
+            ->orderBy('hora_inicio')->get();
+
+        $eventosSistema = collect();
+        $eventoActual = null;
+        foreach ($registros85 as $r) {
+            $ini = Carbon::parse($r->hora_inicio, 'America/Lima');
+            $fin = Carbon::parse($r->hora_fin, 'America/Lima');
+            if (!$eventoActual) {
+                $eventoActual = ['inicio' => $ini, 'fin' => $fin, 'dbs' => [$r->decibeles]];
+            } else {
+                $gap = Carbon::parse($eventoActual['fin'], 'America/Lima')->diffInSeconds($ini);
+                if ($gap <= 60) {
+                    $eventoActual['fin'] = $fin;
+                    $eventoActual['dbs'][] = $r->decibeles;
+                } else {
+                    $eventosSistema->push($eventoActual);
+                    $eventoActual = ['inicio' => $ini, 'fin' => $fin, 'dbs' => [$r->decibeles]];
+                }
+            }
+        }
+        if ($eventoActual)
+            $eventosSistema->push($eventoActual);
+
+        $tercSistema = $eventosSistema->map(fn($e) => [
+            'hora_inicio' => $e['inicio']->format('H:i:s'),
+            'hora_fin' => $e['fin']->format('H:i:s'),
+            'minutos' => max(1, (int) $e['inicio']->diffInMinutes($e['fin'])),
+            'db' => round(array_sum($e['dbs']) / count($e['dbs']), 1),
+        ])->values();
+
+        return response()->json([
+            'tercSistema' => $tercSistema,
+            'total_min' => $tercSistema->sum('minutos'),
+        ]);
+    }
+
     private function getDashboardData()
     {
-        $hoy = Carbon::today();
+        $hoy = Carbon::today('America/Lima');
 
         // ── Tarjetas ──
         $nivelPromedio = ExposicionRuido::whereDate('fecha', $hoy)->avg('decibeles') ?? 0;
@@ -109,38 +166,50 @@ class DashboardController extends Controller
 
         $etagSistema = collect();
         foreach ($alertasHoyData as $alerta) {
-            $horaAlerta = Carbon::parse($alerta->hora);
+            // Es vital usar la fecha de $hoy para evitar desfases de 24h si se consulta en días distintos
+            $horaAlerta = Carbon::parse($hoy->toDateString() . ' ' . $alerta->hora, 'America/Lima');
 
-            // Buscamos el registro de exposición más cercano
-            // Primero intentamos en un rango de 1 hora (para datos con desfase)
-            $eventoCercano = $registros85
-                ->filter(fn($r) => abs(Carbon::parse($r->hora_inicio)->diffInSeconds($horaAlerta)) <= 3600)
-                ->sortBy(fn($r) => abs(Carbon::parse($r->hora_inicio)->diffInSeconds($horaAlerta)))
+            // Buscamos el registro de exposición más cercano (mismo trabajador o sensor si aplica)
+            $query = $registros85;
+            if ($alerta->trabajador_id) {
+                $query = $query->where('trabajador_id', $alerta->trabajador_id);
+            }
+
+            $eventoCercano = $query
+                ->filter(function ($r) use ($hoy, $horaAlerta) {
+                    $hIni = Carbon::parse($hoy->toDateString() . ' ' . $r->hora_inicio, 'America/Lima');
+                    return abs($hIni->diffInSeconds($horaAlerta)) <= 3600;
+                })
+                ->sortBy(function ($r) use ($hoy, $horaAlerta) {
+                    $hIni = Carbon::parse($hoy->toDateString() . ' ' . $r->hora_inicio, 'America/Lima');
+                    return abs($hIni->diffInSeconds($horaAlerta));
+                })
                 ->first();
 
             if ($eventoCercano) {
-                $horaEvento = Carbon::parse($eventoCercano->hora_inicio);
-                $segs = abs($horaEvento->diffInSeconds($horaAlerta));
+                $horaEvento = Carbon::parse($hoy->toDateString() . ' ' . $eventoCercano->hora_inicio, 'America/Lima');
+                // Respuesta = Hora Alerta - Hora Inicio Evento (usando milisegundos para precisión)
+                $diffMs = $horaEvento->diffInMilliseconds($horaAlerta, false);
+                $segs = max(0, round($diffMs / 1000, 3));
 
                 $etagSistema->push([
-                    'hora_evento' => $horaEvento->format('H:i:s'),
-                    'hora_alerta' => $horaAlerta->format('H:i:s'),
+                    'hora_evento' => $horaEvento->format('H:i:s.v'),
+                    'hora_alerta' => $horaAlerta->format('H:i:s.v'),
                     'segundos' => $segs,
                     'fuente' => 'sistema',
                     'alto' => $segs > 20,
                 ]);
             }
         }
-        // Agrupar por alerta para evitar duplicados si varias alertas mapean al mismo evento,
-        // o si es único ya lo dejamos.
+        // Deduplicar por hora_alerta
         $etagSistema = $etagSistema->unique('hora_alerta')->values();
 
         $etagManual = EtagManual::whereDate('fecha', $hoy)->orderBy('hora_evento')->get()
             ->map(function ($e) {
-                $segs = Carbon::parse($e->hora_evento)->diffInSeconds(Carbon::parse($e->hora_alerta));
+                $segs = Carbon::parse($e->hora_evento, 'America/Lima')->diffInSeconds(Carbon::parse($e->hora_alerta, 'America/Lima'));
                 return [
-                    'hora_evento' => substr($e->hora_evento, 0, 8),
-                    'hora_alerta' => substr($e->hora_alerta, 0, 8),
+                    'hora_evento' => $e->hora_evento,
+                    'hora_alerta' => $e->hora_alerta,
                     'segundos' => $segs,
                     'fuente' => 'manual',
                     'alto' => $segs > 20,
@@ -311,5 +380,27 @@ class DashboardController extends Controller
         ]);
         TercManual::create($request->only('fecha', 'hora_inicio', 'hora_fin', 'decibeles', 'nota', 'fuente'));
         return back()->with('success', 'Dato TERC guardado.');
+    }
+
+    public function ajaxUpdatePdr(Request $request)
+    {
+        $request->validate([
+            'fecha' => 'required|date',
+            'hora' => 'required',
+            'patron_db' => 'required|numeric|min:0',
+            'fuente' => 'nullable|string',
+            'iot_db' => 'nullable|numeric'
+        ]);
+
+        \App\Models\PdrManual::updateOrCreate(
+            ['fecha' => $request->fecha, 'hora' => $request->hora],
+            [
+                'patron_db' => $request->patron_db,
+                'fuente' => $request->fuente,
+                'iot_db' => $request->iot_db
+            ]
+        );
+
+        return response()->json(['success' => true, 'message' => 'Se registró cambio']);
     }
 }

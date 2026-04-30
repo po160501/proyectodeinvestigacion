@@ -122,7 +122,7 @@ class MonitoreoController extends Controller
             'sensor_id' => $request->sensor_id,
             'decibeles' => $request->decibeles,
             'fecha' => $now->toDateString(),
-            'hora' => $now->toTimeString(),
+            'hora' => $now->format('H:i:s.v'), // Incluye milisegundos
         ]);
 
         // Actualizar nivel actual del sensor
@@ -134,7 +134,7 @@ class MonitoreoController extends Controller
                 'sensor_id' => $request->sensor_id,
                 'nivel_ruido' => $request->decibeles,
                 'fecha' => $now->toDateString(),
-                'hora' => $now->toTimeString(),
+                'hora' => $now->format('H:i:s.v'), // Incluye milisegundos
                 'estado' => 'activa',
             ]);
         }

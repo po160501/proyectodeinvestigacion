@@ -26,9 +26,16 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/api', [DashboardController::class, 'api'])->name('dashboard.api');
+    Route::get('/dashboard/api/terc', [DashboardController::class, 'apiTerc'])->name('dashboard.api.terc');
+    Route::get('/pdr', [DashboardController::class, 'pdr'])->name('pdr.index');
+    Route::get('/etag', [DashboardController::class, 'etag'])->name('etag.index');
+    Route::get('/terc', [DashboardController::class, 'terc'])->name('terc.index');
+
+
     Route::post('/dashboard/pdr', [DashboardController::class, 'storePdr'])->name('dashboard.pdr');
     Route::post('/dashboard/etag', [DashboardController::class, 'storeEtag'])->name('dashboard.etag');
     Route::post('/dashboard/terc', [DashboardController::class, 'storeTerc'])->name('dashboard.terc');
+    Route::post('/pdr/ajax-update', [DashboardController::class, 'ajaxUpdatePdr'])->name('pdr.ajax-update');
 
     // Monitoreo
     Route::get('/monitoreo', [MonitoreoController::class, 'index'])->name('monitoreo.index');

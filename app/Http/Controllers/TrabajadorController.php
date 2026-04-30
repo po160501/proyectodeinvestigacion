@@ -61,22 +61,22 @@ class TrabajadorController extends Controller
 
         // Crear alerta inmediata si supera límite
         if ($alerta) {
-            // Evitar duplicados: no crear si ya hay una alerta del mismo trabajador en los últimos 30s
-            $reciente = Alerta::where('trabajador_id', $trabajador->id)
-                ->where('created_at', '>=', now()->subSeconds(30))
-                ->exists();
-
-            if (!$reciente) {
-                Alerta::create([
-                    'sensor_id' => null,
-                    'trabajador_id' => $trabajador->id,
-                    'obra_id' => $trabajador->obra_id,
-                    'nivel_ruido' => $request->decibeles,
-                    'fecha' => now()->toDateString(),
-                    'hora' => now()->toTimeString(),
-                    'estado' => 'activa',
-                ]);
+            // Se usa la misma hora de inicio del evento para la alerta para un ETAG preciso
+            // Si el request no trae milisegundos, los agregamos como .000 para consistencia
+            $horaAlerta = $request->hora_inicio;
+            if (strpos($horaAlerta, '.') === false) {
+                $horaAlerta .= '.000';
             }
+
+            Alerta::create([
+                'sensor_id' => null,
+                'trabajador_id' => $trabajador->id,
+                'obra_id' => $trabajador->obra_id,
+                'nivel_ruido' => $request->decibeles,
+                'fecha' => now()->toDateString(),
+                'hora' => now()->format('H:i:s.v'), // Tiempo de recepción real con milisegundos
+                'estado' => 'activa',
+            ]);
         }
 
         return response()->json([
