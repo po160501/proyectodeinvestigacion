@@ -527,6 +527,25 @@
                 dbSmooth = DB_MIN;
                 dbPeak = DB_MIN;
 
+                // TRUCO: Reproducir audio silencioso para evitar que el OS suspenda el proceso en segundo plano
+                const silentNode = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0.001; // Casi inaudible
+                silentNode.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                silentNode.start();
+
+                // Media Session API para que el celular lo trate como una app de audio activa
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaSessionMetadata({
+                        title: 'Monitoreo de Ruido Activo',
+                        artist: 'SoundGuard',
+                        album: 'Seguridad Industrial',
+                        artwork: [{ src: '/icon.png', sizes: '512x512', type: 'image/png' }]
+                    });
+                    navigator.mediaSession.playbackState = 'playing';
+                }
+
                 document.getElementById('btnMic').className = 'btn-mic on';
                 document.getElementById('micIcon').textContent = 'mic';
                 document.getElementById('bgBadge').style.display = 'block';
@@ -585,6 +604,10 @@
             document.getElementById('nextSave').textContent = '--';
             document.getElementById('bgBadge').style.display = 'none';
             actualizarArco(DB_MIN, DB_MIN);
+
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'none';
+            }
         }
 
         // ── Procesar RMS desde worklet ──
