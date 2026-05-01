@@ -26,7 +26,7 @@
                         </div>
                         <div class="text-center px-3 py-2 rounded" style="background:#f0883e22;border:1px solid #f0883e">
                             <div class="small text-muted">Respuesta prom.</div>
-                            <div style="font-size:1.5rem;font-weight:700;color:#f0883e">
+                            <div id="etagPromedioDisplay" style="font-size:1.5rem;font-weight:700;color:#f0883e">
                                 {{ $etagPromedio > 0 ? $etagPromedio . 's' : 'Sin datos' }}
                             </div>
                         </div>
@@ -59,7 +59,7 @@
                                     <th>Respuesta</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tbodySistema">
                                 @forelse($etagData->where('fuente', 'sistema') as $e)
                                     <tr class="{{ $e['alto'] ? 'table-danger' : '' }}">
                                         <td>{{ $e['hora_evento'] }}</td>
@@ -95,7 +95,7 @@
                                     <th>Respuesta</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tbodyManual">
                                 @forelse($etagData->where('fuente', 'manual') as $e)
                                     <tr>
                                         <td>{{ $e['hora_evento'] }}</td>
@@ -143,44 +143,98 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        const etagData = @json($etagData);
-        const etagSeg = etagData.length ? etagData.map(e => e.segundos) : [5, 12, 8, 20, 15];
-        const etagFuentes = etagData.length ? etagData.map(e => e.fuente) : ['sistema', 'manual', 'sistema', 'manual', 'sistema'];
-        const etagLabels = etagData.length ? etagData.map(e => e.hora_evento) : ['E1', 'E2', 'E3', 'E4', 'E5'];
+        let chartBarras, chartLinea;
 
-        new Chart(document.getElementById('chartEtagBarras'), {
-            type: 'bar',
-            data: {
-                labels: etagLabels,
-                datasets: [{
-                    label: 'Tiempo respuesta (s)',
-                    data: etagSeg,
-                    backgroundColor: etagFuentes.map(f => f === 'sistema' ? 'rgba(31,111,235,.8)' : 'rgba(240,136,62,.8)'),
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true } }
-            }
-        });
+        function initCharts(data) {
+            const etagSeg = data.length ? data.map(e => e.segundos) : [];
+            const etagFuentes = data.length ? data.map(e => e.fuente) : [];
+            const etagLabels = data.length ? data.map(e => e.hora_evento) : [];
 
-        new Chart(document.getElementById('chartEtagLinea'), {
-            type: 'line',
-            data: {
-                labels: etagLabels,
-                datasets: [{
-                    label: 'Tendencia (s)', data: etagSeg,
-                    borderColor: '#f0883e', backgroundColor: 'rgba(240,136,62,.1)',
-                    borderWidth: 2, pointRadius: 4, tension: 0.4, fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true } }
+            const ctxB = document.getElementById('chartEtagBarras');
+            const ctxL = document.getElementById('chartEtagLinea');
+
+            if (chartBarras) chartBarras.destroy();
+            if (chartLinea) chartLinea.destroy();
+
+            chartBarras = new Chart(ctxB, {
+                type: 'bar',
+                data: {
+                    labels: etagLabels,
+                    datasets: [{
+                        label: 'Tiempo respuesta (s)',
+                        data: etagSeg,
+                        backgroundColor: etagFuentes.map(f => f === 'sistema' ? 'rgba(31,111,235,.8)' : 'rgba(240,136,62,.8)'),
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            chartLinea = new Chart(ctxL, {
+                type: 'line',
+                data: {
+                    labels: etagLabels,
+                    datasets: [{
+                        label: 'Tendencia (s)', data: etagSeg,
+                        borderColor: '#f0883e', backgroundColor: 'rgba(240,136,62,.1)',
+                        borderWidth: 2, pointRadius: 4, tension: 0.4, fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        async function refreshData() {
+            try {
+                const response = await fetch('{{ route('dashboard.api') }}');
+                const data = await response.json();
+
+                // Actualizar Promedio
+                const prom = data.etagPromedio;
+                document.getElementById('etagPromedioDisplay').textContent = prom > 0 ? prom + 's' : 'Sin datos';
+
+                // Actualizar Tablas
+                const etagData = data.etagData;
+                const sistema = etagData.filter(e => e.fuente === 'sistema');
+                const manual = etagData.filter(e => e.fuente === 'manual');
+
+                document.getElementById('tbodySistema').innerHTML = sistema.length
+                    ? sistema.map(e => `
+                                    <tr class="${e.alto ? 'table-danger' : ''}">
+                                        <td>${e.hora_evento}</td>
+                                        <td>${e.hora_alerta}</td>
+                                        <td class="${e.alto ? 'text-danger fw-bold' : 'text-success fw-bold'}">${e.segundos}s</td>
+                                    </tr>`).join('')
+                    : '<tr><td colspan="3" class="text-center py-3 text-muted">Sin alertas de sistema hoy.</td></tr>';
+
+                document.getElementById('tbodyManual').innerHTML = manual.length
+                    ? manual.map(e => `
+                                    <tr>
+                                        <td>${e.hora_evento}</td>
+                                        <td>${e.hora_alerta}</td>
+                                        <td class="fw-bold">${e.segundos}s</td>
+                                    </tr>`).join('')
+                    : '<tr><td colspan="3" class="text-center py-3 text-muted">Sin registros manuales hoy.</td></tr>';
+
+                // Actualizar Gráficos (invertir para que en el gráfico el tiempo avance de izquierda a derecha)
+                initCharts([...etagData].reverse());
+
+            } catch (error) {
+                console.error('Error refreshing ETAG data:', error);
             }
-        });
+        }
+
+        // Iniciar
+        const initialData = @json($etagData);
+        initCharts([...initialData].reverse());
+        setInterval(refreshData, 5000); // Cada 5 segundos
     </script>
 @endpush

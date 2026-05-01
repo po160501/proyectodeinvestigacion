@@ -9,6 +9,7 @@ use App\Models\Trabajador;
 use App\Models\PdrManual;
 use App\Models\EtagManual;
 use App\Models\TercManual;
+use App\Models\MedicionRuido;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -163,31 +164,36 @@ class DashboardController extends Controller
             : null;
 
         // ── ETAG ──
+        $registros85 = ExposicionRuido::whereDate('fecha', $hoy)->where('decibeles', '>=', 85)->get();
+        $mediciones85 = MedicionRuido::whereDate('fecha', $hoy)->where('decibeles', '>=', 85)->get();
 
         $etagSistema = collect();
         foreach ($alertasHoyData as $alerta) {
             // Es vital usar la fecha de $hoy para evitar desfases de 24h si se consulta en días distintos
             $horaAlerta = Carbon::parse($hoy->toDateString() . ' ' . $alerta->hora, 'America/Lima');
 
-            // Buscamos el registro de exposición más cercano (mismo trabajador o sensor si aplica)
-            $query = $registros85;
-            if ($alerta->trabajador_id) {
-                $query = $query->where('trabajador_id', $alerta->trabajador_id);
+            // Determinar qué registros buscar (sensor o trabajador)
+            if ($alerta->sensor_id) {
+                $query = $mediciones85->where('sensor_id', $alerta->sensor_id);
+                $timeField = 'hora';
+            } else {
+                $query = $registros85->where('trabajador_id', $alerta->trabajador_id);
+                $timeField = 'hora_inicio';
             }
 
             $eventoCercano = $query
-                ->filter(function ($r) use ($hoy, $horaAlerta) {
-                    $hIni = Carbon::parse($hoy->toDateString() . ' ' . $r->hora_inicio, 'America/Lima');
+                ->filter(function ($r) use ($hoy, $horaAlerta, $timeField) {
+                    $hIni = Carbon::parse($hoy->toDateString() . ' ' . $r->$timeField, 'America/Lima');
                     return abs($hIni->diffInSeconds($horaAlerta)) <= 3600;
                 })
-                ->sortBy(function ($r) use ($hoy, $horaAlerta) {
-                    $hIni = Carbon::parse($hoy->toDateString() . ' ' . $r->hora_inicio, 'America/Lima');
+                ->sortBy(function ($r) use ($hoy, $horaAlerta, $timeField) {
+                    $hIni = Carbon::parse($hoy->toDateString() . ' ' . $r->$timeField, 'America/Lima');
                     return abs($hIni->diffInSeconds($horaAlerta));
                 })
                 ->first();
 
             if ($eventoCercano) {
-                $horaEvento = Carbon::parse($hoy->toDateString() . ' ' . $eventoCercano->hora_inicio, 'America/Lima');
+                $horaEvento = Carbon::parse($hoy->toDateString() . ' ' . $eventoCercano->$timeField, 'America/Lima');
                 // Respuesta = Hora Alerta - Hora Inicio Evento (usando milisegundos para precisión)
                 $diffMs = $horaEvento->diffInMilliseconds($horaAlerta, false);
                 $segs = max(0, round($diffMs / 1000, 3));
@@ -216,7 +222,9 @@ class DashboardController extends Controller
                 ];
             });
 
-        $etagData = $etagSistema->concat($etagManual)->sortBy('hora_evento')->values();
+        $etagData = $etagSistema->concat($etagManual)->sortByDesc(function ($e) use ($hoy) {
+            return Carbon::parse($hoy->toDateString() . ' ' . $e['hora_alerta'], 'America/Lima');
+        })->values();
         $etagPromedio = $etagSistema->count() ? round($etagSistema->avg('segundos'), 1) : 0;
         $etagPromedioManual = $etagManual->count() ? round($etagManual->avg('segundos'), 1) : 0;
 
