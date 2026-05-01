@@ -536,8 +536,8 @@
                 silentNode.start();
 
                 // Media Session API para que el celular lo trate como una app de audio activa
-                if ('mediaSession' in navigator) {
-                    navigator.mediaSession.metadata = new MediaSessionMetadata({
+                if ('mediaSession' in navigator && window.MediaMetadata) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
                         title: 'Monitoreo de Ruido Activo',
                         artist: 'SoundGuard',
                         album: 'Seguridad Industrial',
