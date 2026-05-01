@@ -275,6 +275,11 @@
         <span class="material-icons align-middle me-1" style="font-size:12px">mic</span>Midiendo en 2° plano
     </div>
 
+    <!-- Audio para mantener vivo el proceso en segundo plano -->
+    <audio id="silentAudio" loop muted playsinline>
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==" type="audio/wav">
+    </audio>
+
     <!-- Header -->
     <div class="header-bar d-flex align-items-center justify-content-between">
         <div>
@@ -428,6 +433,7 @@
         let countdown = 5, countdownTimer;
         let notifPermiso = false;
         let ultimaAlertaTs = 0; // evitar spam de notificaciones
+        let wakeLock = null;
 
         // ── Init ──
         window.addEventListener('DOMContentLoaded', () => {
@@ -535,6 +541,17 @@
                 gainNode.connect(audioCtx.destination);
                 silentNode.start();
 
+                // Reproducir el elemento audio también (doble seguridad)
+                const silentAudio = document.getElementById('silentAudio');
+                silentAudio.play().catch(e => console.log("Audio play blocked"));
+
+                // Wake Lock API para evitar suspensión profunda
+                if ('wakeLock' in navigator) {
+                    try {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                    } catch (err) {}
+                }
+
                 // Media Session API para que el celular lo trate como una app de audio activa
                 if ('mediaSession' in navigator) {
                     navigator.mediaSession.metadata = new MediaSessionMetadata({
@@ -604,6 +621,15 @@
             document.getElementById('nextSave').textContent = '--';
             document.getElementById('bgBadge').style.display = 'none';
             actualizarArco(DB_MIN, DB_MIN);
+
+            // Detener audio y liberar wake lock
+            const silentAudio = document.getElementById('silentAudio');
+            silentAudio.pause();
+            silentAudio.currentTime = 0;
+
+            if (wakeLock) {
+                wakeLock.release().then(() => { wakeLock = null; });
+            }
 
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.playbackState = 'none';
