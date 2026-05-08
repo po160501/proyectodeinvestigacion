@@ -178,7 +178,7 @@
         <p>Sistema de vigilancia en tiempo real para la prevención de enfermedades auditivas en trabajadores de Trujillo.</p>
 
         <ul class="feature-list">
-            <li><span class="material-icons">graphic_eq</span> Monitoreo en tiempo real con sensores ESP32</li>
+            <li><span class="material-icons">graphic_eq</span> Monitoreo en tiempo real</li>
             <li><span class="material-icons">notifications_active</span> Alertas automáticas al superar 85 dB</li>
             <li><span class="material-icons">assessment</span> Reportes diarios, semanales y mensuales</li>
             <li><span class="material-icons">health_and_safety</span> Prevención de enfermedades auditivas</li>
