@@ -17,8 +17,8 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/icon.png">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" crossorigin="anonymous">
     <style>
         body {
             background: #0d1117;
@@ -430,6 +430,7 @@
         let ultimaAlertaTs = 0; // evitar spam de notificaciones
 
         window.onerror = function(msg, url, line) {
+            if (msg === "Script error.") return; // Ignorar errores genéricos de CDNs
             alert("Error detectado: " + msg + "\nEn: " + url + "\nLínea: " + line);
         };
 
@@ -770,6 +771,7 @@
             }
         });
     </script>
+    {{-- 
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -777,6 +779,7 @@
             });
         }
     </script>
+    --}}
 </body>
 
 </html>
