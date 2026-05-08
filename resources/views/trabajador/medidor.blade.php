@@ -514,8 +514,8 @@
         async function iniciarMic() {
             try {
                 // ACTIVAR SERVICIO DE PRIMER PLANO (Nativo Capacitor)
-                if (window.Capacitor && window.Capacitor.Plugins.ForegroundService) {
-                    await window.Capacitor.Plugins.ForegroundService.startForegroundService({
+                if (window.Capacitor && window.Capacitor.Plugins.AndroidForegroundService) {
+                    await window.Capacitor.Plugins.AndroidForegroundService.startForegroundService({
                         id: 123,
                         title: "SoundGuard Activo",
                         body: "Monitoreando ruido en tiempo real...",
@@ -617,8 +617,8 @@
 
         function detenerMic() {
             // DETENER SERVICIOS NATIVOS
-            if (window.Capacitor && window.Capacitor.Plugins.ForegroundService) {
-                window.Capacitor.Plugins.ForegroundService.stopForegroundService();
+            if (window.Capacitor && window.Capacitor.Plugins.AndroidForegroundService) {
+                window.Capacitor.Plugins.AndroidForegroundService.stopForegroundService();
             }
             if (wakeLock) { wakeLock.release(); wakeLock = null; }
 
@@ -672,6 +672,12 @@
         function iniciarUILoop() {
             function uiLoop() {
                 if (!midiendo) return;
+                
+                // Forzar al sistema de audio a mantenerse despierto
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
                 actualizarUI(dbSmooth, dbPeak);
                 requestAnimationFrame(uiLoop);
             }
