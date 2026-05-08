@@ -198,6 +198,50 @@
             border: 1px solid #30363d;
             color: #8b949e;
             border-radius: 8px;
+            padding: 4px 10px;
+            font-size: .8rem;
+            transition: all .15s
+        }
+
+        /* Estilos Salud Auditiva */
+        .health-card {
+            background: linear-gradient(145deg, #161b22, #0d1117);
+            border: 1px solid #30363d;
+            border-left: 4px solid #58a6ff;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .health-card.warning {
+            border-left-color: #f0883e;
+            background: linear-gradient(145deg, #2a1a0a, #161b22);
+        }
+        .health-card.danger {
+            border-left-color: #f85149;
+            background: linear-gradient(145deg, #2a0a0a, #161b22);
+        }
+        .health-icon {
+            font-size: 24px;
+            color: #58a6ff;
+        }
+        .health-card.warning .health-icon { color: #f0883e; }
+        .health-card.danger .health-icon { color: #f85149; }
+        
+        #healthMessage {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        .fade-text {
+            animation: fadeInOut 0.5s ease-in-out;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(5px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
             padding: 6px 14px;
             font-size: .8rem;
             cursor: pointer;
@@ -377,6 +421,19 @@
             </div>
         </div>
 
+        <!-- Salud Auditiva -->
+        <div class="health-card p-3 mb-3" id="healthCard">
+            <div class="d-flex align-items-start gap-3">
+                <div class="mt-1">
+                    <span class="material-icons health-icon" id="healthIcon">info</span>
+                </div>
+                <div>
+                    <div class="small fw-bold text-uppercase mb-1" style="font-size:0.65rem; letter-spacing: 0.5px; opacity: 0.7;" id="healthLabel">Salud Auditiva</div>
+                    <div id="healthMessage" class="text-white-50">Cargando consejos de salud...</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Historial -->
         <div class="card-dark p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -429,6 +486,19 @@
         let ultimaAlertaTs = 0; // evitar spam de notificaciones
         let wakeLock = null;
 
+        // Mensajes de salud auditiva
+        const HEALTH_TIPS = [
+            { icon: 'hearing', label: 'Tinnitus', text: 'El Tinnitus es un zumbido constante. Protégete hoy para evitarlo mañana.' },
+            { icon: 'shield', label: 'Hipoacusia (HIR)', text: 'La Hipoacusia Inducida por Ruido es irreversible. ¡Cuida tus células ciliadas!' },
+            { icon: 'timer', label: 'Regla 60/60', text: 'No escuches audio a más del 60% de volumen por más de 60 minutos.' },
+            { icon: 'bedtime', label: 'Fatiga Auditiva', text: 'Tus oídos necesitan 16 horas de silencio para recuperarse tras un turno ruidoso.' },
+            { icon: 'warning', label: 'Presbiacusia', text: 'El ruido excesivo acelera el envejecimiento de tus oídos. Protégete siempre.' },
+            { icon: 'science', label: 'Dato Médico', text: 'Las células del oído no se regeneran. Una vez dañadas, se pierden para siempre.' },
+            { icon: 'volunteer_activism', label: 'Cuidado', text: 'El estrés también afecta tu audición. Mantén la calma en ambientes ruidosos.' },
+            { icon: 'medical_services', label: 'Chequeo', text: 'Si sientes tus oídos tapados después del trabajo, consulta a un especialista.' }
+        ];
+        let tipIndex = 0;
+
         window.onerror = function(msg, url, line) {
             if (msg === "Script error.") return; // Ignorar errores genéricos de CDNs
             alert("Error detectado: " + msg + "\nEn: " + url + "\nLínea: " + line);
@@ -447,8 +517,60 @@
                 if (panel) panel.style.display = 'block';
             } else {
                 mostrarMedidor();
+                iniciarRotacionTips();
             }
         });
+
+        function iniciarRotacionTips() {
+            updateHealthTip();
+            setInterval(() => {
+                if (dbSmooth < LIMITE) { // Solo rotar si no hay peligro
+                    tipIndex = (tipIndex + 1) % HEALTH_TIPS.length;
+                    updateHealthTip();
+                }
+            }, 10000);
+        }
+
+        function updateHealthTip() {
+            const tip = HEALTH_TIPS[tipIndex];
+            const el = document.getElementById('healthMessage');
+            const card = document.getElementById('healthCard');
+            const icon = document.getElementById('healthIcon');
+            const label = document.getElementById('healthLabel');
+
+            el.classList.remove('fade-text');
+            void el.offsetWidth; // trigger reflow
+            el.classList.add('fade-text');
+            
+            el.innerText = tip.text;
+            icon.innerText = tip.icon;
+            label.innerText = tip.label;
+            
+            card.classList.remove('warning', 'danger');
+        }
+
+        function handleHealthAlert(db) {
+            const el = document.getElementById('healthMessage');
+            const card = document.getElementById('healthCard');
+            const icon = document.getElementById('healthIcon');
+            const label = document.getElementById('healthLabel');
+
+            if (db >= LIMITE + 10) {
+                card.classList.add('danger');
+                card.classList.remove('warning');
+                icon.innerText = 'report_problem';
+                label.innerText = '¡PELIGRO EXTREMO!';
+                el.innerText = 'Nivel crítico. Daño auditivo en minutos. ¡PONTE PROTECCIÓN AHORA!';
+            } else if (db >= LIMITE) {
+                card.classList.add('warning');
+                card.classList.remove('danger');
+                icon.innerText = 'warning';
+                label.innerText = 'Riesgo Auditivo';
+                el.innerText = 'Superaste el límite seguro. No permanezcas mucho tiempo sin protección.';
+            } else if (card.classList.contains('warning') || card.classList.contains('danger')) {
+                updateHealthTip(); // Volver a los tips normales
+            }
+        }
 
         // ── Notificaciones del navegador ──
         function solicitarNotificaciones() {
@@ -690,6 +812,11 @@
             document.getElementById('dbPeak').textContent = peak > db + 1 ? `Pico: ${peak.toFixed(1)} dB` : '';
             document.getElementById('dbDisplay').style.color = db >= LIMITE ? '#f85149' : db >= LIMITE - 10 ? '#f0883e' : '#e6edf3';
             actualizarArco(db, peak);
+
+            // Actualizar la tarjeta de salud auditiva dinámicamente
+            if (typeof handleHealthAlert === 'function') {
+                handleHealthAlert(db);
+            }
 
             const pill = document.getElementById('statusPill');
             if (db >= LIMITE) {

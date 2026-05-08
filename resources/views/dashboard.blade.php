@@ -226,6 +226,23 @@
         </div>
     </div>
 
+    {{-- ── Boletín de Salud Auditiva (Admin) ── --}}
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <div class="chart-card" style="border-left: 5px solid var(--accent); background: linear-gradient(90deg, #161b22, #0d1117);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="metric-icon bg-blue" style="width: 50px; height: 50px;">
+                        <span class="material-icons">medical_information</span>
+                    </div>
+                    <div>
+                        <div class="chart-title mb-0">Boletín de Gestión y Salud Auditiva</div>
+                        <div id="adminHealthTip" class="text-muted small mt-1">Cargando boletín preventivo para administración...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- ── Obras sobre límite ── --}}
     @if($obrasSobreLimite->count())
         <div class="row g-3">
@@ -448,6 +465,32 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         const LIMIT_DB = 85;
+
+        const ADMIN_TIPS = [
+            "La Hipoacusia Inducida por Ruido (HIR) es la enfermedad profesional #1 en el sector. La prevención es su mejor activo.",
+            "Responsabilidad Legal: Es deber de la administración asegurar el uso de EPP según la norma OSHA/NIOSH.",
+            "Costo-Beneficio: Una enfermedad profesional puede costar hasta 3 veces más que un sistema de monitoreo preventivo.",
+            "Efectividad de EPP: Tapones mal usados protegen solo 5dB en vez de 30dB. Revise la capacitación del personal.",
+            "Tinnitus Laboral: Afecta la concentración y aumenta el riesgo de accidentes. No es solo ruido, es seguridad.",
+            "Recuperación: El personal expuesto a +85dB necesita al menos 16 horas de 'descanso auditivo' para evitar daño permanente.",
+            "Dato: Las células ciliadas del oído no se regeneran. El daño auditivo es acumulativo y para toda la vida."
+        ];
+        let adminTipIdx = 0;
+
+        function rotateAdminTip() {
+            const el = document.getElementById('adminHealthTip');
+            if(el) {
+                el.style.opacity = 0;
+                setTimeout(() => {
+                    el.innerText = ADMIN_TIPS[adminTipIdx];
+                    el.style.opacity = 1;
+                    el.style.transition = 'opacity 0.5s ease';
+                    adminTipIdx = (adminTipIdx + 1) % ADMIN_TIPS.length;
+                }, 500);
+            }
+        }
+        setInterval(rotateAdminTip, 12000);
+        window.addEventListener('load', rotateAdminTip);
 
         // ── Datos PHP → JS ──
         const ruidoHoras = @json($ruidoPorHora->pluck('hora'));
