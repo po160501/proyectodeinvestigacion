@@ -429,11 +429,21 @@
         let notifPermiso = false;
         let ultimaAlertaTs = 0; // evitar spam de notificaciones
 
+        window.onerror = function(msg, url, line) {
+            alert("Error detectado: " + msg + "\nEn: " + url + "\nLínea: " + line);
+        };
+
         // ── Init ──
         window.addEventListener('DOMContentLoaded', () => {
-            solicitarNotificaciones();
+            try {
+                if ('Notification' in window) {
+                    solicitarNotificaciones();
+                }
+            } catch (e) { console.error("Error en notificaciones:", e); }
+
             if (NOMBRE_INICIAL === 'Pendiente' || NOMBRE_INICIAL === '') {
-                document.getElementById('registerPanel').style.display = 'block';
+                const panel = document.getElementById('registerPanel');
+                if (panel) panel.style.display = 'block';
             } else {
                 mostrarMedidor();
             }
