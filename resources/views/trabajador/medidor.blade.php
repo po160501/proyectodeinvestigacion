@@ -426,8 +426,8 @@
         let ventana5s = [], ventanaInicio = null;
         let historialData = [];
         let countdown = 5, countdownTimer;
-        let notifPermiso = false;
         let ultimaAlertaTs = 0; // evitar spam de notificaciones
+        let wakeLock = null;
 
         window.onerror = function(msg, url, line) {
             if (msg === "Script error.") return; // Ignorar errores genéricos de CDNs
@@ -513,6 +513,22 @@
 
         async function iniciarMic() {
             try {
+                // ACTIVAR SERVICIO DE PRIMER PLANO (Nativo Capacitor)
+                if (window.Capacitor && window.Capacitor.Plugins.ForegroundService) {
+                    await window.Capacitor.Plugins.ForegroundService.startForegroundService({
+                        id: 123,
+                        title: "SoundGuard Activo",
+                        body: "Monitoreando ruido en tiempo real...",
+                        icon: "ic_launcher",
+                        importance: 3
+                    });
+                }
+
+                // Intentar Wake Lock para que el procesador no se duerma
+                if ('wakeLock' in navigator) {
+                    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
+                }
+
                 micStream = await navigator.mediaDevices.getUserMedia({
                     audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 },
                     video: false
@@ -600,6 +616,12 @@
         }
 
         function detenerMic() {
+            // DETENER SERVICIOS NATIVOS
+            if (window.Capacitor && window.Capacitor.Plugins.ForegroundService) {
+                window.Capacitor.Plugins.ForegroundService.stopForegroundService();
+            }
+            if (wakeLock) { wakeLock.release(); wakeLock = null; }
+
             midiendo = false;
             clearInterval(countdownTimer);
             clearTimeout(peakTimer);
