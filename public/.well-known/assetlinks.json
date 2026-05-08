@@ -1,12 +1,14 @@
 [
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.soundguard.app", 
-      "sha256_cert_fingerprints": [
-        "8B:E5:18:80:92:88:F9:F5:B7:96:14:2A:08:33:9B:41:9F:B0:A0:FE:B8:7E:D4:E0:7C:A6:73:0E:8B:3B:1B:E3"
-      ]
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.soundguard.app",
+            "sha256_cert_fingerprints": [
+                "8B:E5:18:80:92:88:F9:F5:B7:96:14:2A:08:33:9B:41:9F:B0:A0:FE:B8:7E:D4:E0:7C:A6:73:0E:8B:3B:1B:E3"
+            ]
+        }
     }
-  }
 ]
