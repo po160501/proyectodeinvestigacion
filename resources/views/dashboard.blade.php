@@ -4,6 +4,25 @@
 
 @section('content')
 
+    {{-- ── Boletín de Salud Auditiva (Admin) ── --}}
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <div class="chart-card"
+                style="border-left: 5px solid var(--accent); background: linear-gradient(90deg, rgba(214, 215, 216, 1), rgba(214, 215, 216, 1));">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="metric-icon bg-blue" style="width: 50px; height: 50px;">
+                        <span class="material-icons">medical_information</span>
+                    </div>
+                    <div>
+                        <div class="chart-title mb-0">Boletín de Gestión y Salud Auditiva</div>
+                        <div id="adminHealthTip" class="text-muted small mt-1">Cargando boletín preventivo para
+                            administración...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- ── Tarjetas métricas ── --}}
     <div class="row g-3 mb-4">
         <div class="col-12 col-sm-6 col-xl-3">
@@ -11,7 +30,8 @@
                 <div class="metric-icon bg-blue"><span class="material-icons">volume_up</span></div>
                 <div>
                     <div class="metric-value text-primary" id="valNivelPromedio">{{ number_format($nivelPromedio, 1) }}
-                        <small style="font-size:.9rem">dB</small></div>
+                        <small style="font-size:.9rem">dB</small>
+                    </div>
                     <div class="metric-label">Nivel Promedio de Ruido</div>
                     <div class="metric-sub {{ $nivelPromedio >= 85 ? 'text-danger' : 'text-success' }}">
                         <span class="material-icons"
@@ -36,7 +56,8 @@
                 <div class="metric-icon bg-orange"><span class="material-icons">timer</span></div>
                 <div>
                     <div class="metric-value" id="valTiempoPromedio" style="color:var(--warning);font-size:.9rem">
-                        {{ number_format($tiempoPromedio, 0) }} <small style="font-size:.9rem">min</small></div>
+                        {{ number_format($tiempoPromedio, 0) }} <small style="font-size:.9rem">min</small>
+                    </div>
                     <div class="metric-label" style="line-height:1.2">Tiempo Exposición Promedio</div>
                     <div class="metric-sub {{ $tiempoPromedio > 30 ? 'text-danger' : 'text-success' }}">
                         {{ $tiempoPromedio > 30 ? 'Supera límite recomendado' : 'Dentro del límite' }}
@@ -49,7 +70,8 @@
                 <div class="metric-icon bg-teal"><span class="material-icons">smartphone</span></div>
                 <div>
                     <div class="metric-value" id="valDispositivosActivos" style="color:var(--accent)">
-                        {{ $dispositivosActivos }}</div>
+                        {{ $dispositivosActivos }}
+                    </div>
                     <div class="metric-label">Dispositivos Activos</div>
                     <div class="metric-sub text-success">
                         <span class="material-icons" style="font-size:13px;vertical-align:middle">wifi</span> Midiendo hoy
@@ -83,7 +105,8 @@
                         <div class="text-center px-3 py-2 rounded" style="background:#1f6feb22;border:1px solid #1f6feb">
                             <div class="small text-muted">Precisión promedio</div>
                             <div id="valPdrPromedio" style="font-size:1.8rem;font-weight:700;color:#58a6ff">
-                                {{ $pdrPromedio !== null ? $pdrPromedio . '%' : 'Sin datos' }}</div>
+                                {{ $pdrPromedio !== null ? $pdrPromedio . '%' : 'Sin datos' }}
+                            </div>
                         </div>
                         <a href="{{ route('pdr.index') }}" class="btn btn-primary d-flex align-items-center gap-2">
                             <span class="material-icons">analytics</span> Detalles
@@ -111,9 +134,11 @@
                         <div class="text-center px-3 py-2 rounded" style="background:#f0883e22;border:1px solid #f0883e">
                             <div class="small text-muted">Respuesta prom.</div>
                             <div id="valEtagPromedio" style="font-size:1.8rem;font-weight:700;color:#f0883e">
-                                {{ $etagPromedio > 0 ? $etagPromedio . 's' : 'Sin datos' }}</div>
+                                {{ $etagPromedio > 0 ? $etagPromedio . 's' : 'Sin datos' }}
+                            </div>
                         </div>
-                        <a href="{{ route('etag.index') }}" class="btn btn-warning text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('etag.index') }}"
+                            class="btn btn-warning text-white d-flex align-items-center gap-2">
                             <span class="material-icons">history_toggle_off</span> Detalles
                         </a>
                     </div>
@@ -137,10 +162,12 @@
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <div class="d-flex gap-2">
-                            <div class="text-center px-2 py-1 rounded border border-danger small text-danger" style="background:#f8514915">
+                            <div class="text-center px-2 py-1 rounded border border-danger small text-danger"
+                                style="background:#f8514915">
                                 Sistema: {{ $tercPromedio }}m
                             </div>
-                            <div class="text-center px-2 py-1 rounded border border-warning small text-warning" style="background:#f0883e15">
+                            <div class="text-center px-2 py-1 rounded border border-warning small text-warning"
+                                style="background:#f0883e15">
                                 Manual: {{ $tercPromedioManual }}m
                             </div>
                         </div>
@@ -178,7 +205,8 @@
                         <div class="text-center p-3 rounded" style="background:#58a6ff15;border:1px solid #58a6ff">
                             <div class="small text-muted mb-1">Mejora ETAG</div>
                             <div id="valMejoraEtag" style="font-size:2rem;font-weight:700;color:#58a6ff">
-                                {{ $mejoraEtag > 0 ? '-' : '+' }}{{ abs($mejoraEtag) }}%</div>
+                                {{ $mejoraEtag > 0 ? '-' : '+' }}{{ abs($mejoraEtag) }}%
+                            </div>
                             <div class="small text-muted">Reducción tiempo de alerta</div>
                         </div>
                     </div>
@@ -186,7 +214,8 @@
                         <div class="text-center p-3 rounded" style="background:#f0883e15;border:1px solid #f0883e">
                             <div class="small text-muted mb-1">Mejora TERC</div>
                             <div id="valMejoraTerc" style="font-size:2rem;font-weight:700;color:#f0883e">
-                                {{ $mejoraTerc > 0 ? '-' : '+' }}{{ abs($mejoraTerc) }}%</div>
+                                {{ $mejoraTerc > 0 ? '-' : '+' }}{{ abs($mejoraTerc) }}%
+                            </div>
                             <div class="small text-muted">Reducción tiempo exposición</div>
                         </div>
                     </div>
@@ -226,23 +255,6 @@
         </div>
     </div>
 
-    {{-- ── Boletín de Salud Auditiva (Admin) ── --}}
-    <div class="row g-3 mb-3">
-        <div class="col-12">
-            <div class="chart-card" style="border-left: 5px solid var(--accent); background: linear-gradient(90deg, #161b22, #0d1117);">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="metric-icon bg-blue" style="width: 50px; height: 50px;">
-                        <span class="material-icons">medical_information</span>
-                    </div>
-                    <div>
-                        <div class="chart-title mb-0">Boletín de Gestión y Salud Auditiva</div>
-                        <div id="adminHealthTip" class="text-muted small mt-1">Cargando boletín preventivo para administración...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- ── Obras sobre límite ── --}}
     @if($obrasSobreLimite->count())
         <div class="row g-3">
@@ -277,7 +289,8 @@
                                         <td class="fw-semibold">{{ $o['obra'] }}</td>
                                         <td>{{ $o['limite_db'] }} dB</td>
                                         <td class="{{ $o['avg_db'] >= $o['limite_db'] ? 'text-danger fw-bold' : '' }}">
-                                            {{ $o['avg_db'] }} dB</td>
+                                            {{ $o['avg_db'] }} dB
+                                        </td>
                                         <td class="text-danger fw-semibold">{{ $o['min_sobre'] }} min</td>
                                         <td class="text-muted">{{ $o['min_total'] }} min</td>
                                         <td>{{ $o['trabajadores'] }}</td>
@@ -479,7 +492,7 @@
 
         function rotateAdminTip() {
             const el = document.getElementById('adminHealthTip');
-            if(el) {
+            if (el) {
                 el.style.opacity = 0;
                 setTimeout(() => {
                     el.innerText = ADMIN_TIPS[adminTipIdx];
@@ -745,14 +758,14 @@
 
                 const cList = document.getElementById('conclusionesList');
                 cList.innerHTML = `
-                <li>La precisión del sistema IoT mejoró <strong style="color:#3fb950">${d.mejoraPdr}%</strong> respecto al método anterior (${d.antesPdr}% → ${d.despuesPdr}%).</li>
-                <li>El tiempo de respuesta ante alertas
-                    ${d.mejoraEtag > 0 ? `<strong style="color:#58a6ff">se redujo un ${d.mejoraEtag}%</strong> (${d.antesEtag}s → ${d.despuesEtag}s).` : `<strong style="color:#f85149">aumentó un ${Math.abs(d.mejoraEtag)}%</strong> — requiere optimización.`}
-                </li>
-                <li>El tiempo de exposición a ruido crítico
-                    ${d.mejoraTerc > 0 ? `<strong style="color:#f0883e">disminuyó un ${d.mejoraTerc}%</strong> (${d.antesExp} → ${d.despuesExp} min promedio).` : `<span style="color:#8b949e">se mantiene elevado — se recomienda reforzar controles.</span>`}
-                </li>
-            `;
+                    <li>La precisión del sistema IoT mejoró <strong style="color:#3fb950">${d.mejoraPdr}%</strong> respecto al método anterior (${d.antesPdr}% → ${d.despuesPdr}%).</li>
+                    <li>El tiempo de respuesta ante alertas
+                        ${d.mejoraEtag > 0 ? `<strong style="color:#58a6ff">se redujo un ${d.mejoraEtag}%</strong> (${d.antesEtag}s → ${d.despuesEtag}s).` : `<strong style="color:#f85149">aumentó un ${Math.abs(d.mejoraEtag)}%</strong> — requiere optimización.`}
+                    </li>
+                    <li>El tiempo de exposición a ruido crítico
+                        ${d.mejoraTerc > 0 ? `<strong style="color:#f0883e">disminuyó un ${d.mejoraTerc}%</strong> (${d.antesExp} → ${d.despuesExp} min promedio).` : `<span style="color:#8b949e">se mantiene elevado — se recomienda reforzar controles.</span>`}
+                    </li>
+                `;
 
                 // Charts
                 charts.ruido.data.labels = d.ruidoPorHora.map(r => r.hora);
@@ -769,8 +782,8 @@
                 charts.pdrE.update('none');
 
                 // ETAG — separar sistema y manual para colores correctos
-                const etagAll  = d.etagData;
-                const etagLabelsNew = etagAll.map(e => e.hora_evento ? e.hora_evento.substring(0,5) : '—');
+                const etagAll = d.etagData;
+                const etagLabelsNew = etagAll.map(e => e.hora_evento ? e.hora_evento.substring(0, 5) : '—');
                 const etagColores = etagAll.map(e => e.fuente === 'sistema' ? 'rgba(31,111,235,.85)' : 'rgba(240,136,62,.85)');
 
                 charts.etagB.data.labels = etagLabelsNew.length ? etagLabelsNew : ['Sin datos'];
@@ -807,13 +820,13 @@
                     const rColor = pct >= 50 ? 'danger' : (pct >= 25 ? 'warning' : 'secondary');
                     const rLabel = pct >= 50 ? 'Alto' : (pct >= 25 ? 'Medio' : 'Bajo');
                     return `
-                    <tr>
-                        <td class="fw-semibold">${o.obra}</td><td>${o.limite_db} dB</td>
-                        <td class="${o.avg_db >= o.limite_db ? 'text-danger fw-bold' : ''}">${o.avg_db} dB</td>
-                        <td class="text-danger fw-semibold">${o.min_sobre} min</td><td class="text-muted">${o.min_total} min</td>
-                        <td>${o.trabajadores}</td><td><span class="badge bg-${rColor}">${rLabel} (${pct}%)</span></td>
-                    </tr>
-                `;
+                        <tr>
+                            <td class="fw-semibold">${o.obra}</td><td>${o.limite_db} dB</td>
+                            <td class="${o.avg_db >= o.limite_db ? 'text-danger fw-bold' : ''}">${o.avg_db} dB</td>
+                            <td class="text-danger fw-semibold">${o.min_sobre} min</td><td class="text-muted">${o.min_total} min</td>
+                            <td>${o.trabajadores}</td><td><span class="badge bg-${rColor}">${rLabel} (${pct}%)</span></td>
+                        </tr>
+                    `;
                 });
 
             } catch (e) { console.error('Error refreshing dashboard:', e); }
