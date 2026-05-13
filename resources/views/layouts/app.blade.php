@@ -63,10 +63,6 @@
             <a href="{{ route('usuarios.index') }}" class="{{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
                 <span class="material-icons">manage_accounts</span> Usuarios
             </a>
-            <a href="{{ route('configuracion.index') }}"
-                class="{{ request()->routeIs('configuracion.*') ? 'active' : '' }}">
-                <span class="material-icons">settings</span> Configuración
-            </a>
         </div>
 
         <div class="sidebar-footer">

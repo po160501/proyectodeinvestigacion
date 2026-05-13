@@ -91,42 +91,6 @@
             {{ \Carbon\Carbon::parse($inicio)->format('d/m/Y') }} al {{ \Carbon\Carbon::parse($fin)->format('d/m/Y') }}
         </div>
 
-        {{-- Tabla mediciones --}}
-        <div class="table-card mb-4">
-            <div class="table-header">
-                <h6>Mediciones de Ruido</h6>
-                <span class="badge bg-primary">{{ $mediciones->count() }} registros</span>
-            </div>
-            <div class="table-responsive" style="max-height:300px;overflow-y:auto">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Hora</th>
-                            <th>Sensor</th>
-                            <th>Decibeles</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($mediciones->take(50) as $m)
-                            <tr>
-                                <td>{{ \Carbon\Carbon::parse($m->fecha)->format('d/m/Y') }}</td>
-                                <td>{{ substr($m->hora, 0, 5) }}</td>
-                                <td>{{ $m->sensor->nombre ?? 'N/A' }}</td>
-                                <td><span
-                                        class="fw-bold {{ $m->decibeles >= 85 ? 'db-critical' : 'db-normal' }}">{{ $m->decibeles }}
-                                        dB</span></td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-3">Sin mediciones en este período.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
         {{-- Tabla alertas --}}
         <div class="table-card">
             <div class="table-header">
@@ -139,7 +103,7 @@
                         <tr>
                             <th>Fecha</th>
                             <th>Hora</th>
-                            <th>Sensor</th>
+                            <th>Trabajador</th>
                             <th>Nivel</th>
                             <th>Estado</th>
                         </tr>
@@ -149,7 +113,7 @@
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($a->fecha)->format('d/m/Y') }}</td>
                                 <td>{{ substr($a->hora, 0, 5) }}</td>
-                                <td>{{ $a->sensor->nombre ?? 'N/A' }}</td>
+                                <td>{{ $a->trabajador->nombre ?? 'N/A' }}</td>
                                 <td><span class="fw-bold db-critical">{{ $a->nivel_ruido }} dB</span></td>
                                 <td><span class="badge-custom badge-{{ $a->estado }}">{{ ucfirst($a->estado) }}</span></td>
                             </tr>

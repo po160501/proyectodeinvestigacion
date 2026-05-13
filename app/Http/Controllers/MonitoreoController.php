@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MedicionRuido;
-use App\Models\Sensor;
 use App\Models\Alerta;
 use App\Models\Obra;
 use App\Models\ExposicionRuido;
@@ -23,6 +21,7 @@ class MonitoreoController extends Controller
     {
         $hoy = Carbon::today();
         $obraId = $request->query('obra_id');
+        $areaId = $request->query('area_id');
         $trabajadorId = $request->query('trabajador_id');
 
         // ── Obras con ponderado ──
@@ -62,11 +61,14 @@ class MonitoreoController extends Controller
         if ($obraId) {
             $trabajadores = \App\Models\Trabajador::where('obra_id', $obraId)
                 ->where('nombre', '!=', 'Pendiente')
-                ->with(['exposiciones' => fn($q) => $q->where('updated_at', '>=', Carbon::now()->subMinute())->orderByDesc('created_at')])
+                ->with([
+                    'exposiciones' => fn($q) => $q->where('updated_at', '>=', Carbon::now()->subMinute())->orderByDesc('created_at'),
+                    'areaRel'
+                ])
                 ->get()
                 ->map(fn($t) => [
                     'id' => $t->id,
-                    'nombre' => $t->nombre,
+                    'nombre' => $t->area_id && $t->areaRel ? $t->areaRel->nombre : $t->nombre,
                     'area_id' => $t->area_id,
                     'db' => $t->exposiciones->first()?->decibeles ?? null,
                     'hora' => $t->exposiciones->first()?->hora_fin ?? null,
@@ -84,6 +86,19 @@ class MonitoreoController extends Controller
                 ->orderBy('hora_fin')
                 ->get()
                 ->map(fn($e) => ['hora' => substr($e->hora_fin, 0, 5), 'db' => (float) $e->decibeles])
+                ->values();
+        } elseif ($areaId) {
+            // Historial ponderado del área
+            $area = \App\Models\Area::find($areaId);
+            $titulo = $area?->nombre;
+            $ids = \App\Models\Trabajador::where('area_id', $areaId)->pluck('id');
+            $historial = ExposicionRuido::whereIn('trabajador_id', $ids)
+                ->whereDate('fecha', $hoy)
+                ->select(DB::raw('LEFT(hora_fin,5) as hora'), DB::raw('AVG(decibeles) as db'))
+                ->groupBy(DB::raw('LEFT(hora_fin,5)'))
+                ->orderBy('hora')
+                ->get()
+                ->map(fn($r) => ['hora' => $r->hora, 'db' => round($r->db, 1)])
                 ->values();
         } elseif ($obraId) {
             // Historial ponderado de la obra
@@ -108,37 +123,4 @@ class MonitoreoController extends Controller
         return response()->json(compact('obras', 'trabajadores', 'historial', 'titulo', 'limite'));
     }
 
-    // Endpoint para recibir datos desde ESP32/Arduino
-    public function recibirDato(Request $request)
-    {
-        $request->validate([
-            'sensor_id' => 'required|exists:sensores,id',
-            'decibeles' => 'required|numeric|min:0|max:200',
-        ]);
-
-        $now = Carbon::now();
-
-        $medicion = MedicionRuido::create([
-            'sensor_id' => $request->sensor_id,
-            'decibeles' => $request->decibeles,
-            'fecha' => $now->toDateString(),
-            'hora' => $now->format('H:i:s.v'), // Incluye milisegundos
-        ]);
-
-        // Actualizar nivel actual del sensor
-        Sensor::where('id', $request->sensor_id)->update(['nivel_actual' => $request->decibeles]);
-
-        // Generar alerta automática si supera 85 dB
-        if ($request->decibeles >= 85) {
-            Alerta::create([
-                'sensor_id' => $request->sensor_id,
-                'nivel_ruido' => $request->decibeles,
-                'fecha' => $now->toDateString(),
-                'hora' => $now->format('H:i:s.v'), // Incluye milisegundos
-                'estado' => 'activa',
-            ]);
-        }
-
-        return response()->json(['ok' => true, 'id' => $medicion->id]);
-    }
 }

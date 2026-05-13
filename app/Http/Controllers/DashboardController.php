@@ -9,7 +9,6 @@ use App\Models\Trabajador;
 use App\Models\PdrManual;
 use App\Models\EtagManual;
 use App\Models\TercManual;
-use App\Models\MedicionRuido;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -87,15 +86,28 @@ class DashboardController extends Controller
     private function getDashboardData()
     {
         $hoy = Carbon::today('America/Lima');
+        $obraId = request('obra_id');
+        
+        $obrasList = Obra::all();
+
+        $queryExp = ExposicionRuido::whereDate('fecha', $hoy);
+        $queryAlertas = Alerta::whereDate('fecha', $hoy);
+        $queryTrabajadores = Trabajador::query();
+
+        if ($obraId) {
+            $queryExp->whereHas('trabajador', fn($q) => $q->where('obra_id', $obraId));
+            $queryAlertas->whereHas('trabajador', fn($q) => $q->where('obra_id', $obraId));
+            $queryTrabajadores->where('obra_id', $obraId);
+        }
 
         // ── Tarjetas ──
-        $nivelPromedio = ExposicionRuido::whereDate('fecha', $hoy)->avg('decibeles') ?? 0;
-        $alertasHoy = Alerta::whereDate('fecha', $hoy)->where('nivel_ruido', '>=', 85)->count();
-        $tiempoPromedio = ExposicionRuido::whereDate('fecha', $hoy)->where('decibeles', '>=', 85)->avg('tiempo_exposicion') ?? 0;
-        $dispositivosActivos = Trabajador::whereHas('exposiciones', fn($q) => $q->whereDate('fecha', $hoy))->count();
+        $nivelPromedio = (clone $queryExp)->avg('decibeles') ?? 0;
+        $alertasHoy = (clone $queryAlertas)->where('nivel_ruido', '>=', 85)->count();
+        $tiempoPromedio = (clone $queryExp)->where('decibeles', '>=', 85)->avg('tiempo_exposicion') ?? 0;
+        $dispositivosActivos = (clone $queryTrabajadores)->whereHas('exposiciones', fn($q) => $q->whereDate('fecha', $hoy))->count();
 
         // ── Gráfico 1: Ruido por intervalos ──
-        $ruidoPorHora = ExposicionRuido::whereDate('fecha', $hoy)
+        $ruidoPorHora = (clone $queryExp)
             ->select(
                 DB::raw('FLOOR(TIME_TO_SEC(hora_fin)/600)*600 as slot'),
                 DB::raw('AVG(decibeles) as promedio')
@@ -107,7 +119,7 @@ class DashboardController extends Controller
             ]);
 
         // ── Agrupación de Eventos Críticos (> 85dB) ──
-        $registros85 = ExposicionRuido::whereDate('fecha', $hoy)
+        $registros85 = (clone $queryExp)
             ->where('decibeles', '>=', 85)
             ->orderBy('hora_inicio')->get();
 
@@ -132,7 +144,7 @@ class DashboardController extends Controller
         if ($eventoActual)
             $eventosSistema->push($eventoActual);
 
-        $alertasHoyData = Alerta::whereDate('fecha', $hoy)
+        $alertasHoyData = (clone $queryAlertas)
             ->where('nivel_ruido', '>=', 85)
             ->orderBy('hora')->get();
 
@@ -164,22 +176,15 @@ class DashboardController extends Controller
             : null;
 
         // ── ETAG ──
-        $registros85 = ExposicionRuido::whereDate('fecha', $hoy)->where('decibeles', '>=', 85)->get();
-        $mediciones85 = MedicionRuido::whereDate('fecha', $hoy)->where('decibeles', '>=', 85)->get();
+        $registros85 = (clone $queryExp)->where('decibeles', '>=', 85)->get();
 
         $etagSistema = collect();
         foreach ($alertasHoyData as $alerta) {
             // Es vital usar la fecha de $hoy para evitar desfases de 24h si se consulta en días distintos
             $horaAlerta = Carbon::parse($hoy->toDateString() . ' ' . $alerta->hora, 'America/Lima');
 
-            // Determinar qué registros buscar (sensor o trabajador)
-            if ($alerta->sensor_id) {
-                $query = $mediciones85->where('sensor_id', $alerta->sensor_id);
-                $timeField = 'hora';
-            } else {
-                $query = $registros85->where('trabajador_id', $alerta->trabajador_id);
-                $timeField = 'hora_inicio';
-            }
+            $query = $registros85->where('trabajador_id', $alerta->trabajador_id);
+            $timeField = 'hora_inicio';
 
             $eventoCercano = $query
                 ->filter(function ($r) use ($hoy, $horaAlerta, $timeField) {
@@ -252,9 +257,13 @@ class DashboardController extends Controller
         $tercPromedio = $tercSistema->sum('minutos');
         $tercPromedioManual = $tercManual->sum('minutos');
 
-        $registrosHistoricos = ExposicionRuido::where('decibeles', '>=', 85)
-            ->where('fecha', '>=', Carbon::now()->subDays(6))
-            ->orderBy('fecha')->orderBy('hora_inicio')
+        $queryHistorico = ExposicionRuido::where('decibeles', '>=', 85)
+            ->where('fecha', '>=', Carbon::now()->subDays(6));
+        if ($obraId) {
+            $queryHistorico->whereHas('trabajador', fn($q) => $q->where('obra_id', $obraId));
+        }
+
+        $registrosHistoricos = $queryHistorico->orderBy('fecha')->orderBy('hora_inicio')
             ->get()->groupBy(fn($r) => Carbon::parse($r->fecha)->toDateString());
 
         $tercDiarioSis = collect();
@@ -305,9 +314,11 @@ class DashboardController extends Controller
         $mejoraEtag = $antesEtag > 0 ? round(($antesEtag - $despuesEtag) / $antesEtag * 100, 1) : 0;
         $mejoraTerc = $antesExp > 0 ? round(($antesExp - $despuesExp) / $antesExp * 100, 1) : 0;
 
-        // ── Obras sobre límite ──
-        $obrasSobreLimite = Obra::with(['trabajadores.exposiciones' => fn($q) => $q->whereDate('fecha', $hoy)])
-            ->get()->map(function ($obra) {
+        $queryObrasLimite = Obra::with(['trabajadores.exposiciones' => fn($q) => $q->whereDate('fecha', $hoy)]);
+        if ($obraId) {
+            $queryObrasLimite->where('id', $obraId);
+        }
+        $obrasSobreLimite = $queryObrasLimite->get()->map(function ($obra) {
                 $exp = $obra->trabajadores->flatMap->exposiciones;
                 $minSobre = $exp->where('decibeles', '>=', $obra->limite_db)->sum('tiempo_exposicion');
                 return [
@@ -321,6 +332,8 @@ class DashboardController extends Controller
             })->filter(fn($o) => $o['min_sobre'] > 0)->sortByDesc('min_sobre')->values();
 
         return [
+            'obrasList' => $obrasList,
+            'obraActual' => $obraId,
             'nivelPromedio' => round($nivelPromedio, 1),
             'alertasHoy' => $alertasHoy,
             'tiempoPromedio' => round($tiempoPromedio, 1),

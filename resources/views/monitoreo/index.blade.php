@@ -111,7 +111,7 @@
             <div class="chart-card">
                 <div class="chart-title mb-3">
                     <span class="material-icons align-middle me-1" style="font-size:18px">account_tree</span>
-                    Áreas / Trabajadores
+                    Áreas
                 </div>
                 <div class="tree-scroll" id="arbolAreas">
                     <div class="text-muted small text-center py-3">Selecciona una obra</div>
@@ -182,7 +182,7 @@
         function fetchDatos() {
             const p = new URLSearchParams();
             if (obraActual) p.set('obra_id', obraActual.id);
-            if (trabajadorActual) p.set('trabajador_id', trabajadorActual.id);
+            if (areaActual) p.set('area_id', areaActual.id);
 
             fetch(URL_DATOS + (p.toString() ? '?' + p : ''))
                 .then(r => r.json())
@@ -243,8 +243,6 @@
             }
             obraActual = { id, nombre, limite };
             areaActual = null;
-            trabajadorActual = null;
-            areasAbiertas.clear();
             document.getElementById('subtituloHistorial').textContent = `Promedio ponderado — ${nombre}`;
             fetchDatos();
         }
@@ -264,89 +262,42 @@
             }
 
             arbol.innerHTML = obra.areas.map(a => {
-                const abierta = areasAbiertas.has(a.id);
-                const aActiva = areaActual?.id === a.id && !trabajadorActual;
-                const trabsArea = trabajadores.filter(t => t.area_id === a.id);
-
-                const filaArea = `
-            <div class="tree-item tree-area ${aActiva ? 'active' : ''}"
-                 onclick="toggleArea(${a.id},'${esc(a.nombre)}')">
-                <div class="d-flex align-items-center gap-2 overflow-hidden">
-                    <span class="material-icons chevron ${abierta ? 'open' : ''}" id="chev-${a.id}">chevron_right</span>
-                    <span class="material-icons" style="color:#58a6ff;font-size:17px">layers</span>
-                    <span class="text-truncate">${esc(a.nombre)}</span>
-                </div>
-                <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                    <span class="db-badge ${dbClass(a.ponderado, obraActual.limite)}">
-                        ${a.ponderado !== null ? a.ponderado + ' dB' : '--'}
-                    </span>
-                    <span class="text-muted" style="font-size:.72rem">${a.total}</span>
-                </div>
-            </div>`;
-
-                const filasTrab = trabsArea.length
-                    ? trabsArea.map(t => {
-                        const tActiva = trabajadorActual?.id === t.id;
-                        return `
-                    <div class="tree-item tree-trab ${tActiva ? 'active' : ''}"
-                         onclick="seleccionarTrabajador(${t.id},'${esc(t.nombre)}',event)">
-                        <div class="d-flex align-items-center gap-2 overflow-hidden">
-                            <span class="material-icons" style="color:${dbColor(t.db, obraActual.limite)};font-size:16px">person</span>
-                            <span class="text-truncate">${esc(t.nombre)}</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                            <span class="db-badge ${dbClass(t.db, obraActual.limite)}">
-                                ${t.db !== null ? t.db + ' dB' : '--'}
-                            </span>
-                            <span class="text-muted" style="font-size:.7rem">${t.hora ? t.hora.slice(0, 5) : '--'}</span>
-                        </div>
-                    </div>`;
-                    }).join('')
-                    : '<div class="tree-trab text-muted py-1" style="font-size:.78rem;padding-left:36px">Sin trabajadores en esta área</div>';
+                const aActiva = areaActual?.id === a.id;
 
                 return `
             <div class="mb-1">
-                ${filaArea}
-                <div class="tree-children ${abierta ? 'open' : ''}" id="children-${a.id}">
-                    ${filasTrab}
+                <div class="tree-item tree-area ${aActiva ? 'active' : ''}"
+                     onclick="seleccionarArea(${a.id},'${esc(a.nombre)}')">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        <span class="material-icons" style="color:#58a6ff;font-size:17px">layers</span>
+                        <span class="text-truncate">${esc(a.nombre)}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        <span class="db-badge ${dbClass(a.ponderado, obraActual.limite)}">
+                            ${a.ponderado !== null ? a.ponderado + ' dB' : '--'}
+                        </span>
+                        <span class="text-muted" style="font-size:.72rem">${a.total}</span>
+                    </div>
                 </div>
             </div>`;
             }).join('');
         }
 
-        // ── Toggle área ──
-        function toggleArea(id, nombre) {
-            const yaAbierta = areasAbiertas.has(id);
-            if (yaAbierta && areaActual?.id === id && !trabajadorActual) {
-                areasAbiertas.delete(id);
+        // ── Seleccionar área ──
+        function seleccionarArea(id, nombre) {
+            if (areaActual?.id === id) {
                 areaActual = null;
                 // Volver a historial de obra
                 document.getElementById('subtituloHistorial').textContent = `Promedio ponderado — ${obraActual.nombre}`;
-                trabajadorActual = null;
                 fetchDatos();
                 return;
             }
-            areasAbiertas.add(id);
             areaActual = { id, nombre };
-            trabajadorActual = null;
             document.getElementById('subtituloHistorial').textContent = `Promedio área — ${nombre}`;
-            // Historial del área = filtrar trabajadores de esa área
             fetchDatos();
         }
 
-        // ── Seleccionar trabajador ──
-        function seleccionarTrabajador(id, nombre, event) {
-            event.stopPropagation();
-            if (trabajadorActual?.id === id) {
-                trabajadorActual = null;
-                document.getElementById('subtituloHistorial').textContent =
-                    areaActual ? `Promedio área — ${areaActual.nombre}` : `Promedio ponderado — ${obraActual.nombre}`;
-            } else {
-                trabajadorActual = { id, nombre };
-                document.getElementById('subtituloHistorial').textContent = `Historial individual — ${nombre}`;
-            }
-            fetchDatos();
-        }
+
 
         // ── Actualizar gráfico ──
         function actualizarGrafico(historial, limite, titulo) {

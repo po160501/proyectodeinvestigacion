@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MedicionRuido;
 use App\Models\Alerta;
 use App\Models\ExposicionRuido;
 use Illuminate\Http\Request;
@@ -26,13 +25,7 @@ class ReporteController extends Controller
             default => [Carbon::today(), Carbon::today()],
         };
 
-        $mediciones = MedicionRuido::with('sensor')
-            ->whereBetween('fecha', [$inicio, $fin])
-            ->orderBy('fecha')->orderBy('hora')
-            ->get();
-
-        $alertas = Alerta::with('sensor')
-            ->whereBetween('fecha', [$inicio, $fin])
+        $alertas = Alerta::whereBetween('fecha', [$inicio, $fin])
             ->orderBy('fecha')->orderBy('hora')
             ->get();
 
@@ -41,14 +34,14 @@ class ReporteController extends Controller
             ->get();
 
         $resumen = [
-            'promedio_db' => round($mediciones->avg('decibeles') ?? 0, 1),
-            'maximo_db' => round($mediciones->max('decibeles') ?? 0, 1),
-            'minimo_db' => round($mediciones->min('decibeles') ?? 0, 1),
+            'promedio_db' => round($exposiciones->avg('decibeles') ?? 0, 1),
+            'maximo_db' => round($exposiciones->max('decibeles') ?? 0, 1),
+            'minimo_db' => round($exposiciones->min('decibeles') ?? 0, 1),
             'total_alertas' => $alertas->count(),
-            'total_mediciones' => $mediciones->count(),
+            'total_mediciones' => $exposiciones->count(),
             'tiempo_promedio' => round($exposiciones->avg('tiempo_exposicion') ?? 0, 1),
         ];
 
-        return view('reportes.index', compact('mediciones', 'alertas', 'exposiciones', 'resumen', 'tipo', 'inicio', 'fin'));
+        return view('reportes.index', compact('alertas', 'exposiciones', 'resumen', 'tipo', 'inicio', 'fin'));
     }
 }

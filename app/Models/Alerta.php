@@ -7,12 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Alerta extends Model
 {
     protected $table = 'alertas';
-    protected $fillable = ['sensor_id', 'nivel_ruido', 'fecha', 'hora', 'estado', 'trabajador_id', 'obra_id'];
-
-    public function sensor()
-    {
-        return $this->belongsTo(Sensor::class, 'sensor_id');
-    }
+    protected $fillable = ['nivel_ruido', 'fecha', 'hora', 'estado', 'trabajador_id', 'obra_id'];
 
     public function trabajador()
     {

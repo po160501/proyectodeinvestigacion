@@ -3,12 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\SensorController;
+
 use App\Http\Controllers\AlertaController;
 use App\Http\Controllers\MonitoreoController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\ConfiguracionController;
+
 use App\Http\Controllers\ObraController;
 use App\Http\Controllers\TrabajadorController;
 
@@ -57,11 +57,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
     Route::get('/reportes/generar', [ReporteController::class, 'generar'])->name('reportes.generar');
 
-    // Sensores
-    Route::get('/sensores', [SensorController::class, 'index'])->name('sensores.index');
-    Route::post('/sensores', [SensorController::class, 'store'])->name('sensores.store');
-    Route::put('/sensores/{sensor}', [SensorController::class, 'update'])->name('sensores.update');
-    Route::delete('/sensores/{sensor}', [SensorController::class, 'destroy'])->name('sensores.destroy');
 
     // Usuarios
     Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
@@ -76,13 +71,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/trabajadores/{trabajador}/area', [ObraController::class, 'asignarArea'])->name('trabajadores.area');
     Route::delete('/trabajadores/{trabajador}', [TrabajadorController::class, 'destroy'])->name('trabajadores.destroy');
 
-    // Configuración
-    Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
-    Route::put('/configuracion', [ConfiguracionController::class, 'update'])->name('configuracion.update');
 });
 
-// ── API para ESP32/Arduino (sin CSRF) ──
-Route::post('/api/medicion', [MonitoreoController::class, 'recibirDato'])->name('api.medicion');
 
 // ── Trabajador (acceso por token, sin auth) ──
 Route::get('/trabajador/{token}', [TrabajadorController::class, 'medidor'])->name('trabajador.medidor');

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Medidor — {{ $trabajador->obra->nombre ?? 'SoundGuard' }}</title>
-    
+
     <!-- PWA / Mobile Tags -->
     <meta name="theme-color" content="#0d1117">
     <meta name="mobile-web-app-capable" content="yes">
@@ -17,7 +17,8 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/icon.png">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" crossorigin="anonymous">
     <style>
         body {
@@ -213,21 +214,30 @@
             position: relative;
             transition: all 0.3s ease;
         }
+
         .health-card.warning {
             border-left-color: #f0883e;
             background: linear-gradient(145deg, #2a1a0a, #161b22);
         }
+
         .health-card.danger {
             border-left-color: #f85149;
             background: linear-gradient(145deg, #2a0a0a, #161b22);
         }
+
         .health-icon {
             font-size: 24px;
             color: #58a6ff;
         }
-        .health-card.warning .health-icon { color: #f0883e; }
-        .health-card.danger .health-icon { color: #f85149; }
-        
+
+        .health-card.warning .health-icon {
+            color: #f0883e;
+        }
+
+        .health-card.danger .health-icon {
+            color: #f85149;
+        }
+
         #healthMessage {
             font-size: 0.85rem;
             line-height: 1.4;
@@ -235,17 +245,27 @@
             display: flex;
             align-items: center;
         }
+
         .fade-text {
             animation: fadeInOut 0.5s ease-in-out;
         }
+
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(5px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-            padding: 6px 14px;
-            font-size: .8rem;
-            cursor: pointer;
-            transition: all .2s
+
+        padding: 6px 14px;
+        font-size: .8rem;
+        cursor: pointer;
+        transition: all .2s
         }
 
         .calibrate-btn:hover {
@@ -416,7 +436,8 @@
                 <div class="col-4">
                     <div class="small text-secondary">Límite</div>
                     <div class="fw-semibold" style="font-size:.82rem;color:#f0883e">
-                        {{ $trabajador->obra->limite_db ?? 85 }} dB</div>
+                        {{ $trabajador->obra->limite_db ?? 85 }} dB
+                    </div>
                 </div>
             </div>
         </div>
@@ -428,7 +449,9 @@
                     <span class="material-icons health-icon" id="healthIcon">info</span>
                 </div>
                 <div>
-                    <div class="small fw-bold text-uppercase mb-1" style="font-size:0.65rem; letter-spacing: 0.5px; opacity: 0.7;" id="healthLabel">Salud Auditiva</div>
+                    <div class="small fw-bold text-uppercase mb-1"
+                        style="font-size:0.65rem; letter-spacing: 0.5px; opacity: 0.7;" id="healthLabel">Salud Auditiva
+                    </div>
                     <div id="healthMessage" class="text-white-50">Cargando consejos de salud...</div>
                 </div>
             </div>
@@ -474,7 +497,7 @@
         const DECAY_COEF = 0.90;
         const PEAK_HOLD_MS = 2500;
 
-        let calibracion = 0;
+        let calibracion = parseFloat(localStorage.getItem('calibracion_sg')) || 0;
         let audioCtx, workletNode, micStream;
         let midiendo = false;
         let sesionInicio = null;
@@ -499,7 +522,7 @@
         ];
         let tipIndex = 0;
 
-        window.onerror = function(msg, url, line) {
+        window.onerror = function (msg, url, line) {
             if (msg === "Script error.") return; // Ignorar errores genéricos de CDNs
             alert("Error detectado: " + msg + "\nEn: " + url + "\nLínea: " + line);
         };
@@ -519,6 +542,8 @@
                 mostrarMedidor();
                 iniciarRotacionTips();
             }
+
+            document.getElementById('calLabel').textContent = (calibracion >= 0 ? '+' : '') + calibracion;
         });
 
         function iniciarRotacionTips() {
@@ -541,11 +566,11 @@
             el.classList.remove('fade-text');
             void el.offsetWidth; // trigger reflow
             el.classList.add('fade-text');
-            
+
             el.innerText = tip.text;
             icon.innerText = tip.icon;
             label.innerText = tip.label;
-            
+
             card.classList.remove('warning', 'danger');
         }
 
@@ -648,7 +673,7 @@
 
                 // Intentar Wake Lock para que el procesador no se duerma
                 if ('wakeLock' in navigator) {
-                    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
+                    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) { }
                 }
 
                 micStream = await navigator.mediaDevices.getUserMedia({
@@ -794,7 +819,7 @@
         function iniciarUILoop() {
             function uiLoop() {
                 if (!midiendo) return;
-                
+
                 // Forzar al sistema de audio a mantenerse despierto
                 if (audioCtx && audioCtx.state === 'suspended') {
                     audioCtx.resume();
@@ -886,6 +911,7 @@
 
         function calibrar(delta) {
             calibracion += delta;
+            localStorage.setItem('calibracion_sg', calibracion);
             document.getElementById('calLabel').textContent = (calibracion >= 0 ? '+' : '') + calibracion;
             mostrarToast(`Calibración: ${calibracion >= 0 ? '+' : ''}${calibracion} dB`, 1200);
         }
@@ -926,7 +952,7 @@
             }
         });
     </script>
-    {{-- 
+    {{--
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

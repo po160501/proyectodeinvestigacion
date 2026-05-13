@@ -4,6 +4,30 @@
 
 @section('content')
 
+    {{-- ── Filtro por Obra (Pestañas) ── --}}
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link {{ empty($obraActual) ? 'active' : '' }}" 
+                       href="{{ route('dashboard') }}" 
+                       style="{{ empty($obraActual) ? 'font-weight: 600; color: var(--accent, #1f6feb);' : 'color: #6c757d;' }}">
+                        Todas las Obras
+                    </a>
+                </li>
+                @foreach($obrasList as $obra)
+                    <li class="nav-item">
+                        <a class="nav-link {{ $obraActual == $obra->id ? 'active' : '' }}" 
+                           href="{{ route('dashboard', ['obra_id' => $obra->id]) }}" 
+                           style="{{ $obraActual == $obra->id ? 'font-weight: 600; color: var(--accent, #1f6feb);' : 'color: #6c757d;' }}">
+                            {{ $obra->nombre }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+
     {{-- ── Boletín de Salud Auditiva (Admin) ── --}}
     <div class="row g-3 mb-3">
         <div class="col-12">
