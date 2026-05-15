@@ -87,7 +87,7 @@ class DashboardController extends Controller
     {
         $hoy = Carbon::today('America/Lima');
         $obraId = request('obra_id');
-        
+
         $obrasList = Obra::all();
 
         $queryExp = ExposicionRuido::whereDate('fecha', $hoy);
@@ -319,17 +319,17 @@ class DashboardController extends Controller
             $queryObrasLimite->where('id', $obraId);
         }
         $obrasSobreLimite = $queryObrasLimite->get()->map(function ($obra) {
-                $exp = $obra->trabajadores->flatMap->exposiciones;
-                $minSobre = $exp->where('decibeles', '>=', $obra->limite_db)->sum('tiempo_exposicion');
-                return [
-                    'obra' => $obra->nombre,
-                    'limite_db' => $obra->limite_db,
-                    'avg_db' => round($exp->avg('decibeles') ?? 0, 1),
-                    'min_sobre' => (int) $minSobre,
-                    'min_total' => (int) $exp->sum('tiempo_exposicion'),
-                    'trabajadores' => $obra->trabajadores->count(),
-                ];
-            })->filter(fn($o) => $o['min_sobre'] > 0)->sortByDesc('min_sobre')->values();
+            $exp = $obra->trabajadores->flatMap->exposiciones;
+            $minSobre = $exp->where('decibeles', '>=', $obra->limite_db)->sum('tiempo_exposicion');
+            return [
+                'obra' => $obra->nombre,
+                'limite_db' => $obra->limite_db,
+                'avg_db' => round($exp->avg('decibeles') ?? 0, 1),
+                'min_sobre' => (int) $minSobre,
+                'min_total' => (int) $exp->sum('tiempo_exposicion'),
+                'trabajadores' => $obra->trabajadores->count(),
+            ];
+        })->filter(fn($o) => $o['min_sobre'] > 0)->sortByDesc('min_sobre')->values();
 
         return [
             'obrasList' => $obrasList,

@@ -208,20 +208,20 @@
 
                 document.getElementById('tbodySistema').innerHTML = sistema.length
                     ? sistema.map(e => `
-                                    <tr class="${e.alto ? 'table-danger' : ''}">
-                                        <td>${e.hora_evento}</td>
-                                        <td>${e.hora_alerta}</td>
-                                        <td class="${e.alto ? 'text-danger fw-bold' : 'text-success fw-bold'}">${e.segundos}s</td>
-                                    </tr>`).join('')
+                                        <tr class="${e.alto ? 'table-danger' : ''}">
+                                            <td>${e.hora_evento}</td>
+                                            <td>${e.hora_alerta}</td>
+                                            <td class="${e.alto ? 'text-danger fw-bold' : 'text-success fw-bold'}">${e.segundos}s</td>
+                                        </tr>`).join('')
                     : '<tr><td colspan="3" class="text-center py-3 text-muted">Sin alertas de sistema hoy.</td></tr>';
 
                 document.getElementById('tbodyManual').innerHTML = manual.length
                     ? manual.map(e => `
-                                    <tr>
-                                        <td>${e.hora_evento}</td>
-                                        <td>${e.hora_alerta}</td>
-                                        <td class="fw-bold">${e.segundos}s</td>
-                                    </tr>`).join('')
+                                        <tr>
+                                            <td>${e.hora_evento}</td>
+                                            <td>${e.hora_alerta}</td>
+                                            <td class="fw-bold">${e.segundos}s</td>
+                                        </tr>`).join('')
                     : '<tr><td colspan="3" class="text-center py-3 text-muted">Sin registros manuales hoy.</td></tr>';
 
                 // Actualizar Gráficos (invertir para que en el gráfico el tiempo avance de izquierda a derecha)

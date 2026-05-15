@@ -40,44 +40,40 @@ class TrabajadorController extends Controller
     {
         $request->validate([
             'decibeles' => 'required|numeric|min:0|max:200',
-            'hora_inicio' => 'required|date_format:H:i:s',
-            'hora_fin' => 'required|date_format:H:i:s',
+            'hora_inicio' => ['required', 'regex:/^\d{2}:\d{2}:\d{2}(\.\d+)?$/'],
+            'hora_fin'   => ['required', 'regex:/^\d{2}:\d{2}:\d{2}(\.\d+)?$/'],
         ]);
 
         $trabajador = Trabajador::where('token_sesion', $token)->with('obra')->firstOrFail();
         $limite = $trabajador->obra?->limite_db ?? 85;
         $alerta = $request->decibeles >= $limite;
 
-        $inicio = Carbon::createFromFormat('H:i:s', $request->hora_inicio);
-        $fin = Carbon::createFromFormat('H:i:s', $request->hora_fin);
+        // Parsear con o sin milisegundos
+        $fmtInicio = str_contains($request->hora_inicio, '.') ? 'H:i:s.u' : 'H:i:s';
+        $fmtFin    = str_contains($request->hora_fin, '.') ? 'H:i:s.u' : 'H:i:s';
+        $inicio = Carbon::createFromFormat($fmtInicio, $request->hora_inicio);
+        $fin    = Carbon::createFromFormat($fmtFin, $request->hora_fin);
         $minutos = max(1, (int) $inicio->diffInMinutes($fin));
 
         ExposicionRuido::create([
             'trabajador_id' => $trabajador->id,
-            'hora_inicio' => $request->hora_inicio,
-            'hora_fin' => $request->hora_fin,
+            'hora_inicio'   => $inicio->format('H:i:s.v'),   // guarda con ms
+            'hora_fin'      => $fin->format('H:i:s.v'),      // guarda con ms
             'tiempo_exposicion' => $minutos,
-            'decibeles' => $request->decibeles,
-            'fecha' => now()->toDateString(),
+            'decibeles'     => $request->decibeles,
+            'fecha'         => now()->toDateString(),
         ]);
 
         // Crear alerta inmediata si supera límite
         if ($alerta) {
-            // Se usa la misma hora de inicio del evento para la alerta para un ETAG preciso
-            // Si el request no trae milisegundos, los agregamos como .000 para consistencia
-            $horaAlerta = $request->hora_inicio;
-            if (strpos($horaAlerta, '.') === false) {
-                $horaAlerta .= '.000';
-            }
-
             Alerta::create([
-                'sensor_id' => null,
-                'trabajador_id' => $trabajador->id,
-                'obra_id' => $trabajador->obra_id,
-                'nivel_ruido' => $request->decibeles,
-                'fecha' => now()->toDateString(),
-                'hora' => now()->format('H:i:s.v'), // Tiempo de recepción real con milisegundos
-                'estado' => 'activa',
+                'sensor_id'    => null,
+                'trabajador_id'=> $trabajador->id,
+                'obra_id'      => $trabajador->obra_id,
+                'nivel_ruido'  => $request->decibeles,
+                'fecha'        => now()->toDateString(),
+                'hora'         => now()->format('H:i:s.v'), // Tiempo de recepción real con milisegundos
+                'estado'       => 'activa',
             ]);
         }
 
