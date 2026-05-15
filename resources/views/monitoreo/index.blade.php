@@ -97,8 +97,7 @@
 @section('content')
 
     {{-- ── Cuadros de obras ── --}}
-    <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="small text-muted">Clic en obra para filtrar el árbol</span>
+    <div class="d-flex align-items-right justify-content-end mb-2 ">
         <span class="badge bg-secondary" id="badgeAct">Actualizando...</span>
     </div>
     <div id="obrasGrid" class="row g-3 mb-4"></div>
@@ -125,7 +124,7 @@
                 <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
                     <div>
                         <div class="chart-title mb-0">Historial de Ruido</div>
-                        <div class="chart-sub" id="subtituloHistorial">Selecciona una obra, área o trabajador</div>
+                        <div class="chart-sub" id="subtituloHistorial">Selecciona una obra o área</div>
                     </div>
                     <div class="text-end">
                         <div class="small text-muted">Nivel actual</div>
@@ -222,7 +221,7 @@
                             ${o.ponderado !== null ? o.ponderado : '--'}<small style="font-size:.75rem"> dB</small>
                         </div>
                         <div class="metric-label text-truncate">${esc(o.nombre)}</div>
-                        <div class="metric-sub text-muted">${o.total} trabajador${o.total !== 1 ? 'es' : ''}</div>
+                        <div class="metric-sub text-muted">${o.total} Sensores</div>
                     </div>
                 </div>
             </div>`;

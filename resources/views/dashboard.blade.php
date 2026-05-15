@@ -96,7 +96,7 @@
                     <div class="metric-value" id="valDispositivosActivos" style="color:var(--accent)">
                         {{ $dispositivosActivos }}
                     </div>
-                    <div class="metric-label">Dispositivos Activos</div>
+                    <div class="metric-label">Sensores Activos</div>
                     <div class="metric-sub text-success">
                         <span class="material-icons" style="font-size:13px;vertical-align:middle">wifi</span> Midiendo hoy
                     </div>
@@ -252,7 +252,7 @@
                 </div>
 
                 {{-- Conclusiones automáticas --}}
-                <div class="mt-4 p-3 rounded" style="background:#161b22;border:1px solid #30363d">
+                <!-- <div class="mt-4 p-3 rounded" style="background:#161b22;border:1px solid #30363d">
                     <div class="fw-semibold mb-2" style="color:#58a6ff">
                         <span class="material-icons align-middle me-1"
                             style="font-size:16px">auto_awesome</span>Conclusiones del sistema
@@ -274,13 +274,13 @@
                             @endif
                         </li>
                     </ul>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>
 
     {{-- ── Obras sobre límite ── --}}
-    @if($obrasSobreLimite->count())
+    <!-- @if($obrasSobreLimite->count())
         <div class="row g-3">
             <div class="col-12">
                 <div class="chart-card">
@@ -327,7 +327,7 @@
                 </div>
             </div>
         </div>
-    @endif
+    @endif -->
 
 @endsection
 

@@ -93,14 +93,14 @@
     @foreach($obras as $obra)
         @if($obra->trabajadores_count > 0)
             <div class="chart-card mb-3">
-                <div class="chart-title">{{ $obra->nombre }} — Trabajadores</div>
+                <div class="chart-title">{{ $obra->nombre }}</div>
                 <div class="table-responsive">
                     <table class="table table-sm mb-0 align-middle">
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Teléfono</th>
-                                <th>Jornada</th>
+                                <!-- <th>Nombre</th> -->
+                                <!-- <th>Teléfono</th> -->
+                                <!-- <th>Jornada</th> -->
                                 <th>Área</th>
                                 <th>Acciones</th>
                             </tr>
@@ -108,10 +108,10 @@
                         <tbody>
                             @foreach($obra->trabajadores as $t)
                                 <tr>
-                                    <td>{!! $t->nombre !== 'Pendiente' ? e($t->nombre) : '<em class="text-muted">Sin registrar</em>' !!}
-                                    </td>
-                                    <td>{{ $t->telefono ?? '—' }}</td>
-                                    <td>{{ $t->jornada_inicio ? $t->jornada_inicio . ' - ' . $t->jornada_fin : '—' }}</td>
+                                    <!-- <td>{!! $t->nombre !== 'Pendiente' ? e($t->nombre) : '<em class="text-muted">Sin registrar</em>' !!}
+                                    </td> -->
+                                    <!-- <td>{{ $t->telefono ?? '—' }}</td> -->
+                                    <!-- <td>{{ $t->jornada_inicio ? $t->jornada_inicio . ' - ' . $t->jornada_fin : '—' }}</td> -->
                                     <td style="min-width:140px">
                                         <select class="form-select form-select-sm" onchange="asignarArea({{ $t->id }}, this.value)">
                                             <option value="">— Sin área —</option>

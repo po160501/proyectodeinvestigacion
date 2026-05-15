@@ -21,15 +21,6 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-12 col-md-3">
-                <label class="form-label fw-semibold" style="font-size:.82rem">Estado</label>
-                <select name="estado" class="form-select form-select-sm">
-                    <option value="">Todos</option>
-                    <option value="activa" {{ request('estado') == 'activa' ? 'selected' : '' }}>Activa</option>
-                    <option value="resuelta" {{ request('estado') == 'resuelta' ? 'selected' : '' }}>Resuelta</option>
-                    <option value="ignorada" {{ request('estado') == 'ignorada' ? 'selected' : '' }}>Ignorada</option>
-                </select>
-            </div>
             <div class="col-12 col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-sm">
                     <span class="material-icons" style="font-size:16px;vertical-align:middle">search</span> Filtrar
@@ -55,7 +46,7 @@
                         <th>#</th>
                         <th>Fecha</th>
                         <th>Hora</th>
-                        <th>Trabajador</th>
+                        <!-- <th>Trabajador</th> -->
                         <th>Obra</th>
                         <th>Nivel</th>
                         <!-- <th>Estado</th> -->
@@ -68,7 +59,7 @@
                             <td class="text-muted">{{ $alerta->id }}</td>
                             <td>{{ \Carbon\Carbon::parse($alerta->fecha)->format('d/m/Y') }}</td>
                             <td>{{ substr($alerta->hora, 0, 5) }}</td>
-                            <td class="fw-semibold">{{ $alerta->trabajador->nombre ?? '—' }}</td>
+                            <!-- <td class="fw-semibold">{{ $alerta->trabajador->nombre ?? '—' }}</td> -->
                             <td>{{ $alerta->obra->nombre ?? $alerta->trabajador?->obra?->nombre ?? '—' }}</td>
                             <td>
                                 <span class="fw-bold {{ $alerta->nivel_ruido >= 100 ? 'text-danger' : 'text-warning' }}">
