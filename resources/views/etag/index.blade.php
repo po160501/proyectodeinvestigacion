@@ -10,9 +10,14 @@
                 <h1 class="h4 mb-1">ETAG — Tiempo de Respuesta de Alertas</h1>
                 <p class="text-muted small">Análisis de velocidad de notificación del sistema</p>
             </div>
-            <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
-                <span class="material-icons" style="font-size:18px">dashboard</span> Volver
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('etag.exportar') }}" class="btn btn-sm btn-success d-flex align-items-center gap-2">
+                    <span class="material-icons" style="font-size:18px">download</span> Excel
+                </a>
+                <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
+                    <span class="material-icons" style="font-size:18px">dashboard</span> Volver
+                </a>
+            </div>
         </div>
 
         {{-- Gráficos copiados del Dashboard --}}

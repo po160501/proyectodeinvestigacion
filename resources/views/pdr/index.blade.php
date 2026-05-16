@@ -10,9 +10,14 @@
             <h1 class="h4 mb-1">PDR — Precisión en Detección de Ruido</h1>
             <p class="text-muted small">Comparativa Sistema IoT vs equipo patrón</p>
         </div>
-        <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
-            <span class="material-icons" style="font-size:18px">dashboard</span> Volver
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('pdr.exportar') }}" class="btn btn-sm btn-success d-flex align-items-center gap-2">
+                <span class="material-icons" style="font-size:18px">download</span> Excel
+            </a>
+            <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
+                <span class="material-icons" style="font-size:18px">dashboard</span> Volver
+            </a>
+        </div>
     </div>
 
     {{-- Notificación flotante (Toast) --}}

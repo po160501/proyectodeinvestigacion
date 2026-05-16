@@ -40,6 +40,72 @@ class DashboardController extends Controller
         return response()->json($this->getDashboardData());
     }
 
+    public function exportarPdr()
+    {
+        $data = $this->getDashboardData();
+        return response()->streamDownload(function () use ($data) {
+            $file = fopen('php://output', 'w');
+            // Añadir BOM para que Excel detecte UTF-8
+            fputs($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['Hora', 'IoT (dB)', 'Patron (dB)', 'Error (%)', 'Area', 'Fuente'], ';');
+            
+            foreach ($data['pdrCombinado'] as $row) {
+                fputcsv($file, [
+                    $row['hora'],
+                    $row['iot'],
+                    $row['patron'] ?? 'Sin patron',
+                    $row['error'] ? $row['error'] . '%' : 'N/A',
+                    $row['area'],
+                    ucfirst($row['fuente'] ?? '—')
+                ], ';');
+            }
+            fclose($file);
+        }, 'PDR_' . date('Y-m-d') . '.csv');
+    }
+
+    public function exportarEtag()
+    {
+        $data = $this->getDashboardData();
+        return response()->streamDownload(function () use ($data) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['Hora Evento', 'Hora Alerta', 'Respuesta (segundos)', 'Respuesta (milisegundos)', 'Fuente'], ';');
+            
+            foreach ($data['etagData'] as $row) {
+                fputcsv($file, [
+                    $row['hora_evento'],
+                    $row['hora_alerta'],
+                    $row['segundos'],
+                    $row['ms'] ?? round($row['segundos'] * 1000),
+                    ucfirst($row['fuente'])
+                ], ';');
+            }
+            fclose($file);
+        }, 'ETAG_' . date('Y-m-d') . '.csv');
+    }
+
+    public function exportarTerc()
+    {
+        $data = $this->getDashboardData();
+        return response()->streamDownload(function () use ($data) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF");
+            fputcsv($file, ['Fecha', 'Hora Inicio', 'Hora Fin', 'Minutos', 'Promedio dB', 'Fuente'], ';');
+            
+            foreach ($data['tercData'] as $row) {
+                fputcsv($file, [
+                    $row['fecha'],
+                    $row['hora_inicio'],
+                    $row['hora_fin'],
+                    $row['minutos'],
+                    $row['db'],
+                    ucfirst($row['fuente'])
+                ], ';');
+            }
+            fclose($file);
+        }, 'TERC_' . date('Y-m-d') . '.csv');
+    }
+
     /**AJAX TERC*/
     public function apiTerc()
     {

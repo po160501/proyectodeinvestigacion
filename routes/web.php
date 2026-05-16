@@ -36,8 +36,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/api', [DashboardController::class, 'api'])->name('dashboard.api');
     Route::get('/dashboard/api/terc', [DashboardController::class, 'apiTerc'])->name('dashboard.api.terc');
     Route::get('/pdr', [DashboardController::class, 'pdr'])->name('pdr.index');
+    Route::get('/pdr/exportar', [DashboardController::class, 'exportarPdr'])->name('pdr.exportar');
+    
     Route::get('/etag', [DashboardController::class, 'etag'])->name('etag.index');
+    Route::get('/etag/exportar', [DashboardController::class, 'exportarEtag'])->name('etag.exportar');
+    
     Route::get('/terc', [DashboardController::class, 'terc'])->name('terc.index');
+    Route::get('/terc/exportar', [DashboardController::class, 'exportarTerc'])->name('terc.exportar');
 
 
     Route::post('/dashboard/pdr', [DashboardController::class, 'storePdr'])->name('dashboard.pdr');
