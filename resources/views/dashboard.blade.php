@@ -4,29 +4,41 @@
 
 @section('content')
 
-    {{-- ── Filtro por Obra (Pestañas) ── --}}
-    <div class="row mb-4">
-        <div class="col-12">
-            <ul class="nav nav-tabs">
+    {{-- ── Filtro por Obra (Pestañas) y Fecha ── --}}
+    <div class="row mb-4 align-items-center">
+        <div class="col-12 col-md-8">
+            <ul class="nav nav-tabs border-0">
                 <li class="nav-item">
                     <a class="nav-link {{ empty($obraActual) ? 'active' : '' }}" 
-                       href="{{ route('dashboard') }}" 
-                       style="{{ empty($obraActual) ? 'font-weight: 600; color: var(--accent, #1f6feb);' : 'color: #6c757d;' }}">
+                       href="{{ route('dashboard', ['fecha' => request('fecha')]) }}" 
+                       style="{{ empty($obraActual) ? 'font-weight: 600; color: var(--accent, #1f6feb); border-bottom: 2px solid var(--accent, #1f6feb);' : 'color: #6c757d;' }}">
                         Todas las Obras
                     </a>
                 </li>
                 @foreach($obrasList as $obra)
                     <li class="nav-item">
                         <a class="nav-link {{ $obraActual == $obra->id ? 'active' : '' }}" 
-                           href="{{ route('dashboard', ['obra_id' => $obra->id]) }}" 
-                           style="{{ $obraActual == $obra->id ? 'font-weight: 600; color: var(--accent, #1f6feb);' : 'color: #6c757d;' }}">
+                           href="{{ route('dashboard', ['obra_id' => $obra->id, 'fecha' => request('fecha')]) }}" 
+                           style="{{ $obraActual == $obra->id ? 'font-weight: 600; color: var(--accent, #1f6feb); border-bottom: 2px solid var(--accent, #1f6feb);' : 'color: #6c757d;' }}">
                             {{ $obra->nombre }}
                         </a>
                     </li>
                 @endforeach
             </ul>
         </div>
+        <div class="col-12 col-md-4 mt-2 mt-md-0 d-flex justify-content-md-end">
+            <form method="GET" action="{{ route('dashboard') }}" class="d-flex align-items-center gap-2 m-0">
+                @if($obraActual)
+                    <input type="hidden" name="obra_id" value="{{ $obraActual }}">
+                @endif
+                <label for="fechaDashboard" class="form-label mb-0 fw-semibold text-muted small">Fecha:</label>
+                <input type="date" id="fechaDashboard" name="fecha" class="form-control form-control-sm w-auto border-secondary" 
+                       style="background:#f8f9fa; color:#333; color-scheme: light;"
+                       value="{{ request('fecha', $fechaActual) }}" onchange="this.form.submit()">
+            </form>
+        </div>
     </div>
+    <div style="border-bottom: 1px solid #30363d; margin-top: -1.5rem; margin-bottom: 1.5rem;"></div>
 
     {{-- ── Boletín de Salud Auditiva (Admin) ── --}}
     <div class="row g-3 mb-3">
@@ -132,7 +144,7 @@
                                 {{ $pdrPromedio !== null ? $pdrPromedio . '%' : 'Sin datos' }}
                             </div>
                         </div>
-                        <a href="{{ route('pdr.index') }}" class="btn btn-primary d-flex align-items-center gap-2">
+                        <a href="{{ route('pdr.index', ['fecha' => request('fecha'), 'obra_id' => request('obra_id')]) }}" class="btn btn-primary d-flex align-items-center gap-2">
                             <span class="material-icons">analytics</span> Detalles
                         </a>
                     </div>
@@ -161,7 +173,7 @@
                                 {{ $etagPromedio > 0 ? $etagPromedio . 's' : 'Sin datos' }}
                             </div>
                         </div>
-                        <a href="{{ route('etag.index') }}"
+                        <a href="{{ route('etag.index', ['fecha' => request('fecha'), 'obra_id' => request('obra_id')]) }}"
                             class="btn btn-warning text-white d-flex align-items-center gap-2">
                             <span class="material-icons">history_toggle_off</span> Detalles
                         </a>
@@ -195,7 +207,7 @@
                                 Manual: {{ $tercPromedioManual }}m
                             </div>
                         </div>
-                        <a href="{{ route('terc.index') }}" class="btn btn-danger d-flex align-items-center gap-2">
+                        <a href="{{ route('terc.index', ['fecha' => request('fecha'), 'obra_id' => request('obra_id')]) }}" class="btn btn-danger d-flex align-items-center gap-2">
                             <span class="material-icons">timer</span> Detalles
                         </a>
                     </div>
@@ -365,7 +377,7 @@
                                 <tr>
                                     <form method="POST" action="{{ route('dashboard.pdr') }}">
                                         @csrf
-                                        <input type="hidden" name="fecha" value="{{ date('Y-m-d') }}">
+                                        <input type="hidden" name="fecha" value="{{ $fechaActual }}">
                                         <input type="hidden" name="hora" value="{{ $r['hora'] }}">
                                         <input type="hidden" name="iot_db" value="{{ $r['iot'] }}">
                                         <td>{{ $r['hora'] }}</td>
@@ -404,7 +416,7 @@
                     style="background:#161b22;border:1px solid #30363d">
                     @csrf
                     <div class="col-6 col-md-3"><label class="small">Fecha</label><input type="date" name="fecha"
-                            class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required></div>
+                            class="form-control form-control-sm" value="{{ $fechaActual }}" required></div>
                     <div class="col-6 col-md-2"><label class="small">Evento</label><input type="time" step="1"
                             name="hora_evento" class="form-control form-control-sm" required></div>
                     <div class="col-6 col-md-2"><label class="small">Alerta</label><input type="time" step="1"
@@ -457,7 +469,7 @@
                     style="background:#161b22;border:1px solid #30363d">
                     @csrf
                     <div class="col-6 col-md-3"><label class="small">Fecha</label><input type="date" name="fecha"
-                            class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required></div>
+                            class="form-control form-control-sm" value="{{ $fechaActual }}" required></div>
                     <div class="col-6 col-md-2"><label class="small">Inicio</label><input type="time" step="1"
                             name="hora_inicio" class="form-control form-control-sm" required></div>
                     <div class="col-6 col-md-2"><label class="small">Fin</label><input type="time" step="1"
@@ -764,7 +776,12 @@
 
         async function refreshDashboard() {
             try {
-                const res = await fetch('{{ route('dashboard.api') }}');
+                const url = new URL('{{ route('dashboard.api') }}', window.location.origin);
+                const searchParams = new URLSearchParams(window.location.search);
+                if (searchParams.has('fecha')) url.searchParams.set('fecha', searchParams.get('fecha'));
+                if (searchParams.has('obra_id')) url.searchParams.set('obra_id', searchParams.get('obra_id'));
+
+                const res = await fetch(url.toString());
                 const d = await res.json();
 
                 // Cards

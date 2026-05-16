@@ -11,10 +11,10 @@
                 <p class="text-muted small">Análisis de duración acumulada por encima de 85 dB</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('terc.exportar') }}" class="btn btn-sm btn-success d-flex align-items-center gap-2">
+                <a href="{{ route('terc.exportar', ['fecha' => request('fecha'), 'obra_id' => request('obra_id')]) }}" class="btn btn-sm btn-success d-flex align-items-center gap-2">
                     <span class="material-icons" style="font-size:18px">download</span> Excel
                 </a>
-                <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
+                <a href="{{ route('dashboard', ['fecha' => request('fecha'), 'obra_id' => request('obra_id')]) }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
                     <span class="material-icons" style="font-size:18px">dashboard</span> Volver
                 </a>
             </div>
@@ -137,7 +137,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="fecha" value="{{ date('Y-m-d') }}">
+                    <input type="hidden" name="fecha" value="{{ $fechaActual }}">
                     <div class="row g-2 mb-2">
                         <div class="col"><label class="small">Inicio</label><input type="time" name="hora_inicio"
                                 class="form-control form-control-sm" required></div>

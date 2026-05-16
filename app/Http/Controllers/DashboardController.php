@@ -60,7 +60,7 @@ class DashboardController extends Controller
                 ], ';');
             }
             fclose($file);
-        }, 'PDR_' . date('Y-m-d') . '.csv');
+        }, 'PDR_' . $data['fechaActual'] . '.csv');
     }
 
     public function exportarEtag()
@@ -81,7 +81,7 @@ class DashboardController extends Controller
                 ], ';');
             }
             fclose($file);
-        }, 'ETAG_' . date('Y-m-d') . '.csv');
+        }, 'ETAG_' . $data['fechaActual'] . '.csv');
     }
 
     public function exportarTerc()
@@ -103,13 +103,14 @@ class DashboardController extends Controller
                 ], ';');
             }
             fclose($file);
-        }, 'TERC_' . date('Y-m-d') . '.csv');
+        }, 'TERC_' . $data['fechaActual'] . '.csv');
     }
 
     /**AJAX TERC*/
     public function apiTerc()
     {
-        $hoy = Carbon::today('America/Lima');
+        $fecha = request('fecha');
+        $hoy = $fecha ? Carbon::parse($fecha, 'America/Lima')->startOfDay() : Carbon::today('America/Lima');
 
         $registros85 = ExposicionRuido::whereDate('fecha', $hoy)
             ->where('decibeles', '>=', 85)
@@ -151,7 +152,8 @@ class DashboardController extends Controller
 
     private function getDashboardData()
     {
-        $hoy = Carbon::today('America/Lima');
+        $fecha = request('fecha');
+        $hoy = $fecha ? Carbon::parse($fecha, 'America/Lima')->startOfDay() : Carbon::today('America/Lima');
         $obraId = request('obra_id');
 
         $obrasList = Obra::all();
@@ -400,6 +402,7 @@ class DashboardController extends Controller
         return [
             'obrasList' => $obrasList,
             'obraActual' => $obraId,
+            'fechaActual' => $hoy->toDateString(),
             'nivelPromedio' => round($nivelPromedio, 1),
             'alertasHoy' => $alertasHoy,
             'tiempoPromedio' => round($tiempoPromedio, 1),

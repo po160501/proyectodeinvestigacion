@@ -11,10 +11,10 @@
             <p class="text-muted small">Comparativa Sistema IoT vs equipo patrón</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ route('pdr.exportar') }}" class="btn btn-sm btn-success d-flex align-items-center gap-2">
+            <a href="{{ route('pdr.exportar', ['fecha' => request('fecha'), 'obra_id' => request('obra_id')]) }}" class="btn btn-sm btn-success d-flex align-items-center gap-2">
                 <span class="material-icons" style="font-size:18px">download</span> Excel
             </a>
-            <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
+            <a href="{{ route('dashboard', ['fecha' => request('fecha'), 'obra_id' => request('obra_id')]) }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
                 <span class="material-icons" style="font-size:18px">dashboard</span> Volver
             </a>
         </div>
@@ -183,7 +183,7 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({
-                    fecha: '{{ date('Y-m-d') }}',
+                    fecha: '{{ $fechaActual }}',
                     hora: hora,
                     patron_db: patron,
                     fuente: fuente,

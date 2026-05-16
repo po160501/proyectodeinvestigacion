@@ -11,10 +11,10 @@
                 <p class="text-muted small">Análisis de velocidad de notificación del sistema</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('etag.exportar') }}" class="btn btn-sm btn-success d-flex align-items-center gap-2">
+                <a href="{{ route('etag.exportar', ['fecha' => request('fecha'), 'obra_id' => request('obra_id')]) }}" class="btn btn-sm btn-success d-flex align-items-center gap-2">
                     <span class="material-icons" style="font-size:18px">download</span> Excel
                 </a>
-                <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
+                <a href="{{ route('dashboard', ['fecha' => request('fecha'), 'obra_id' => request('obra_id')]) }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
                     <span class="material-icons" style="font-size:18px">dashboard</span> Volver
                 </a>
             </div>
@@ -131,7 +131,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="fecha" value="{{ date('Y-m-d') }}">
+                    <input type="hidden" name="fecha" value="{{ $fechaActual }}">
                     <div class="mb-2"><label class="small">Hora Evento</label><input type="time" name="hora_evento"
                             class="form-control form-control-sm" required></div>
                     <div class="mb-2"><label class="small">Hora Alerta</label><input type="time" name="hora_alerta"
@@ -199,7 +199,11 @@
 
         async function refreshData() {
             try {
-                const response = await fetch('{{ route('dashboard.api') }}');
+                const url = new URL('{{ route('dashboard.api') }}', window.location.origin);
+                const searchParams = new URLSearchParams(window.location.search);
+                if (searchParams.has('fecha')) url.searchParams.set('fecha', searchParams.get('fecha'));
+                if (searchParams.has('obra_id')) url.searchParams.set('obra_id', searchParams.get('obra_id'));
+                const response = await fetch(url.toString());
                 const data = await response.json();
 
                 // Actualizar Promedio
